@@ -1,0 +1,3 @@
+baseurl = "https://goblog-ja.github.io/"
+languageCode = "ja-jp"
+title = "The Go Blog 日本語訳"

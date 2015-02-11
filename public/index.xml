@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+      <title>Recent Content on The Go Blog 日本語訳 </title>
+      <generator uri="https://hugo.spf13.com">Hugo</generator>
+    <link>https://goblog-ja.github.io/index.xml/</link>
+    <language>ja-jp</language>
+    
+    
+    <updated>Mon, 01 Jan 0001 00:00:00 UTC</updated>
+    
+  </channel>
+</rss>
