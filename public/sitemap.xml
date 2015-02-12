@@ -2,9 +2,14 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>https://goblog-ja.github.io/</loc>
+    <loc>https://ymotongpoo.github.io/goblog-ja/</loc>
     <lastmod>0001-01-01T00:00:00+00:00</lastmod>
     <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://ymotongpoo.github.io/goblog-ja/about/</loc>
+    <lastmod>0001-01-01T00:00:00+00:00</lastmod>
   </url>
   
 </urlset>

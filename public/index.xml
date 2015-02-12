@@ -3,11 +3,28 @@
   <channel>
       <title>Recent Content on The Go Blog 日本語訳 </title>
       <generator uri="https://hugo.spf13.com">Hugo</generator>
-    <link>https://goblog-ja.github.io/index.xml/</link>
+    <link>https://ymotongpoo.github.io/goblog-ja/index.xml/</link>
     <language>ja-jp</language>
     
     
     <updated>Mon, 01 Jan 0001 00:00:00 UTC</updated>
+    
+    <item>
+      <title>about</title>
+      <link>https://ymotongpoo.github.io/goblog-ja/about/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 UTC</pubDate>
+      
+      <guid>https://ymotongpoo.github.io/goblog-ja/about/</guid>
+      <description>
+
+&lt;h1 id=&#34;toc_0&#34;&gt;The Go Blog 日本語訳&lt;/h1&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://blog.golang.org/&#34;&gt;The Go Blog&lt;/a&gt; の日本語訳プロジェクトです。&lt;/p&gt;
+
+&lt;p&gt;本家と同様に訳文本文は Creative Commons Attribution 3.0 License で公開し、
+ソースコードは BSD License とします。&lt;/p&gt;
+</description>
+    </item>
     
   </channel>
 </rss>
