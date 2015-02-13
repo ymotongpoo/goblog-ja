@@ -23,6 +23,10 @@
 
 &lt;p&gt;本家と同様に訳文本文は Creative Commons Attribution 3.0 License で公開し、
 ソースコードは BSD License とします。&lt;/p&gt;
+
+&lt;p&gt;ドキュメント本体はMarkdownをHugoでビルドしていますので、修正は &lt;code&gt;master&lt;/code&gt; ブランチへ
+Pull Requestをお願いします。
+&lt;a href=&#34;https://github.com/ymotongpoo/goblog-ja&#34;&gt;https://github.com/ymotongpoo/goblog-ja&lt;/a&gt;&lt;/p&gt;
 </description>
     </item>
     
