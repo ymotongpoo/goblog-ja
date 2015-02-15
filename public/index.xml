@@ -7,12 +7,43 @@
     <language>ja-jp</language>
     
     
-    <updated>Mon, 01 Jan 0001 00:00:00 UTC</updated>
+    <updated>Wed, 04 Feb 2015 14:49:44 JST</updated>
+    
+    <item>
+      <title>package names</title>
+      <link>https://ymotongpoo.github.io/goblog-ja/package-names/</link>
+      <pubDate>Wed, 04 Feb 2015 14:49:44 JST</pubDate>
+      
+      <guid>https://ymotongpoo.github.io/goblog-ja/package-names/</guid>
+      <description>
+
+&lt;h1 id=&#34;toc_0&#34;&gt;パッケージ名&lt;/h1&gt;
+
+&lt;h2 id=&#34;toc_1&#34;&gt;序文&lt;/h2&gt;
+
+&lt;p&gt;Goのコードはパッケージの形で整理されています。同一パッケージ内では、どのような識別子（名前）も
+参照することが可能ですが、そのパッケージを利用する場合は、パッケージが外部に公開している型、関数、
+定数、変数しか参照できません。パッケージの参照元は常に接頭辞としてパッケージ名を付ける必要があります。
+例えば、 &lt;code&gt;foo.Bar&lt;/code&gt; はインポートしている &lt;code&gt;foo&lt;/code&gt; というパッケージ内の &lt;code&gt;Bar&lt;/code&gt; という公開された名前を
+参照しています。&lt;/p&gt;
+
+&lt;p&gt;良いパッケージ名はコードをより良いものにします。パッケージ名は、その中身の文脈を教えてくれ、参照元で
+利用しているパッケージの目的と使用方法を理解しやすくしてくれます。またパッケージ名は、次第にそれが
+大きくなるにつれて、メンテナーに何がそのパッケージに入るべきで、何が入るべきでないかを決定する手助けとなります。
+良い名前を付けられたパッケージは必要なコードも探しやすくなります。&lt;/p&gt;
+
+&lt;p&gt;Effective Goではパッケージ、型、関数、変数の命名に関する
+&lt;a href=&#34;https://golang.org/doc/effective_go.html#names&#34;&gt;ガイドライン&lt;/a&gt; を提供しています。
+この文章ではそちらに書かれている内容をさらに発展させて、標準パッケージ内で見られる
+名前について調べてみようと思います。また悪いパッケージ名についても議論し、その修正方法についても
+考えてみましょう。&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>about</title>
       <link>https://ymotongpoo.github.io/goblog-ja/about/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 UTC</pubDate>
+      <pubDate>Wed, 04 Feb 2015 11:20:36 JST</pubDate>
       
       <guid>https://ymotongpoo.github.io/goblog-ja/about/</guid>
       <description>

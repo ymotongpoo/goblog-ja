@@ -3,8 +3,8 @@
 
   
   <meta charset="utf-8">
-  <title>about</title>
-  <meta name="description" content="about">
+  <title>package names</title>
+  <meta name="description" content="package names">
   <meta name="author" content="">
 
   
@@ -59,22 +59,32 @@
 		  
 
 		</p>
-		<h5>about</h5>
+		<h5>package names</h5>
 	  </div>
 
 	  <div class="post">
 		
 
-<h1 id="toc_0">The Go Blog 日本語訳</h1>
+<h1 id="toc_0">パッケージ名</h1>
 
-<p><a href="https://blog.golang.org/">The Go Blog</a> の日本語訳プロジェクトです。</p>
+<h2 id="toc_1">序文</h2>
 
-<p>本家と同様に訳文本文は Creative Commons Attribution 3.0 License で公開し、
-ソースコードは BSD License とします。</p>
+<p>Goのコードはパッケージの形で整理されています。同一パッケージ内では、どのような識別子（名前）も
+参照することが可能ですが、そのパッケージを利用する場合は、パッケージが外部に公開している型、関数、
+定数、変数しか参照できません。パッケージの参照元は常に接頭辞としてパッケージ名を付ける必要があります。
+例えば、 <code>foo.Bar</code> はインポートしている <code>foo</code> というパッケージ内の <code>Bar</code> という公開された名前を
+参照しています。</p>
 
-<p>ドキュメント本体はMarkdownをHugoでビルドしていますので、修正は <code>master</code> ブランチへ
-Pull Requestをお願いします。
-<a href="https://github.com/ymotongpoo/goblog-ja">https://github.com/ymotongpoo/goblog-ja</a></p>
+<p>良いパッケージ名はコードをより良いものにします。パッケージ名は、その中身の文脈を教えてくれ、参照元で
+利用しているパッケージの目的と使用方法を理解しやすくしてくれます。またパッケージ名は、次第にそれが
+大きくなるにつれて、メンテナーに何がそのパッケージに入るべきで、何が入るべきでないかを決定する手助けとなります。
+良い名前を付けられたパッケージは必要なコードも探しやすくなります。</p>
+
+<p>Effective Goではパッケージ、型、関数、変数の命名に関する
+<a href="https://golang.org/doc/effective_go.html#names">ガイドライン</a> を提供しています。
+この文章ではそちらに書かれている内容をさらに発展させて、標準パッケージ内で見られる
+名前について調べてみようと思います。また悪いパッケージ名についても議論し、その修正方法についても
+考えてみましょう。</p>
 
 	  </div>
 	</div>
