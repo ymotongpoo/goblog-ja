@@ -3,7 +3,7 @@
   <channel>
       <title>Recent Content on The Go Blog 日本語訳 </title>
       <generator uri="https://hugo.spf13.com">Hugo</generator>
-    <link>https://ymotongpoo.github.io/goblog-ja/index.xml</link>
+    <link>http://localhost:1313/ymotongpoo.github.io/goblog-ja/index.xml</link>
     <language>ja-jp</language>
     
     
@@ -11,10 +11,10 @@
     
     <item>
       <title>package names</title>
-      <link>https://ymotongpoo.github.io/goblog-ja/package-names.html</link>
+      <link>http://localhost:1313/ymotongpoo.github.io/goblog-ja/package-names.html</link>
       <pubDate>Wed, 04 Feb 2015 14:49:44 JST</pubDate>
       
-      <guid>https://ymotongpoo.github.io/goblog-ja/package-names.html</guid>
+      <guid>http://localhost:1313/ymotongpoo.github.io/goblog-ja/package-names.html</guid>
       <description>
 
 &lt;h1 id=&#34;toc_0&#34;&gt;パッケージ名&lt;/h1&gt;
@@ -42,10 +42,10 @@
     
     <item>
       <title>about</title>
-      <link>https://ymotongpoo.github.io/goblog-ja/about.html</link>
+      <link>http://localhost:1313/ymotongpoo.github.io/goblog-ja/about.html</link>
       <pubDate>Wed, 04 Feb 2015 11:20:36 JST</pubDate>
       
-      <guid>https://ymotongpoo.github.io/goblog-ja/about.html</guid>
+      <guid>http://localhost:1313/ymotongpoo.github.io/goblog-ja/about.html</guid>
       <description>
 
 &lt;h1 id=&#34;toc_0&#34;&gt;The Go Blog 日本語訳&lt;/h1&gt;
