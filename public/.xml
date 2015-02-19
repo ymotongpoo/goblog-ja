@@ -37,6 +37,45 @@
 この文章ではそちらに書かれている内容をさらに発展させて、標準パッケージ内で見られる
 名前について調べてみようと思います。また悪いパッケージ名についても議論し、その修正方法についても
 考えてみましょう。&lt;/p&gt;
+
+&lt;h2 id=&#34;toc_2&#34;&gt;パッケージ名&lt;/h2&gt;
+
+&lt;p&gt;良いパッケージ名は短くて明確です。小文字で、アンダースコア（ &lt;code&gt;under_score&lt;/code&gt; ）がなく、
+大文字小文字が混ざったもの（ &lt;code&gt;mixedCaps&lt;/code&gt; ）でもありません。簡潔な名詞であることが多いです。
+たとえば次のようなものが挙げられます。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;time&lt;/code&gt; （時間や時刻を計測したり表示する機能を提供している）&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;list&lt;/code&gt; （双方向リストを実装している）&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;http&lt;/code&gt; （HTTPクライアントとサーバの実装を提供している）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;他の言語で典型的な命名規則はGoのプログラムではおそらく自然なものではないでしょう。
+ここに、他言語では良いスタイルとされているけれどGoでは不適切なパッケージ名の2つ例を挙げてみます。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;computeServiceClient&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;priority_queue&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Goのパッケージではいくつかの型や関数を公開する方法をとっています。たとえば &lt;code&gt;compute&lt;/code&gt; パッケージでは
+&lt;code&gt;Client&lt;/code&gt; 型とサービスを使うためにメソッドを公開したり、複数のクライアント間での処理を分割するために
+関数を公開することもできるでしょう。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;短縮形は慎重にを使うこと。&lt;/strong&gt; パッケージ名ではプログラマによく知られた短縮形であれば使ってもよいでしょう。
+広く使われるパッケージ名はしばしば短縮形の名前になっています。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;strconv&lt;/code&gt; （string conversion、文字列の変換）&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;syscall&lt;/code&gt; （system call、システムコール）&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;fmt&lt;/code&gt; （formmated I/O）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;一方で、パッケージ名を短くしたせいでそのパッケージが曖昧であったり不明瞭になるようであれば、短縮をめましょう。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;ユーザから良い名前を盗まないようにしましょう。&lt;/strong&gt; クライアント側のコード内でよく使われる名前をパッケージ名に
+するのはやめましょう。たとえば、バッファ済みI/Oのパッケージは &lt;code&gt;bufio&lt;/code&gt; であり、 &lt;code&gt;buf&lt;/code&gt; ではありません。
+これは &lt;code&gt;buf&lt;/code&gt; がバッファ用の変数名として都合が良いものだからです。&lt;/p&gt;
 </description>
     </item>
     
