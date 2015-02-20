@@ -134,6 +134,38 @@
 そのような要素ではパッケージ名を繰り返さないようにしましょう。 <code>http</code> パッケージで提供されるHTTPサーバは <code>Server</code> であり、
 <code>HTTPServer</code> ではありません。クライアント側ではこの要素を <code>http.Server</code> という形で参照するので、曖昧さはありません。</p>
 
+<p><strong>関数名を簡潔にしましょう。</strong> pkgパッケージの関数が <code>pkg.Pkg</code> 型（あるいは <code>*pkg.Pkg</code> 型）の値を返すときは、
+関数名では混乱を避けるために型名を省略することがしばしばあります。</p>
+
+<pre><code>start := time.Now()                           // start は time.Time 型
+t, err := time.Parse(time.Kitchen, &quot;6:06PM&quot;)  // t は time.Time 型
+</code></pre>
+
+<p><code>pkg</code> パッケージの <code>New</code> という関数は <code>pkg.Pkg</code> 型の値を返します。この関数はクライアント側でその型を使うときの
+標準的なエントリーポイントです。</p>
+
+<pre><code>q := list.New()  // q は *list.List 型
+</code></pre>
+
+<p>関数が <code>pkg.T</code> 型の値を返し、 <code>T</code> が <code>pkg</code> 出ない場合、関数名にはクライアント側でわかりやすいように <code>T</code> が入るでしょう。
+よくある状況はパッケージ内に複数の New 系の関数がある場合です。</p>
+
+<pre><code>d, err := time.ParseDuration(&quot;10s&quot;)  // d は time.Duration 型
+elapsed := time.Since(start)         // elapsed は time.Duration 型
+ticker := time.NewTicker(d)          // ticker は *time.Ticker 型
+timer := time.NewTimer(d)            // timer は *time.Timer 型
+</code></pre>
+
+<p>クライアント側ではパッケージ名で区別できるため、異なるパッケージで同名の型を持つことが可能です。
+たとえば、標準ライブラリには <code>Reader</code> という名前の型がいくつかあります。 <code>jpeg.Reader</code> 、
+<code>bufio.Reader</code> 、 <code>csv.Reader</code> などがそれにあたります。パッケージ名 が <code>Reader</code> という名前と
+うまく合うようにすると、良い型名を作ることができます。</p>
+
+<p>もしパッケージの中身をよく表している接頭辞になるようなパッケージ名が思い浮かばない場合は、
+おそらくパッケージの抽象化が間違っているでしょう。クライアント側でそう使われるべきコードを書き、
+書いたコードがみすぼらしい場合はパッケージを再構築しましょう。こういった姿勢でいれば、クライアント側で
+わかりやすいパッケージ名を定義することができ、メンテナンスもしやすいパッケージを作れます。</p>
+
 	  </div>
 	</div>
   </div>
@@ -173,6 +205,9 @@
   });
 </script>
 
-</body>
+<script>document.write('<script src="http://'
+        + (location.host || 'localhost').split(':')[0]
+		+ ':1313/livereload.js?mindelay=10"></'
+        + 'script>')</script></body>
 </html>
 
