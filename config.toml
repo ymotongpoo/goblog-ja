@@ -1,3 +1,3 @@
-baseurl = "https://ymotongpoo.github.io/goblog-ja/"
+baseurl = "/"
 languageCode = "ja-jp"
 title = "The Go Blog 日本語訳"

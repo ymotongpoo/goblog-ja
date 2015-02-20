@@ -1,8 +1,7 @@
 +++
 date = "2015-02-04T11:20:36+09:00"
-draft = true
+draft = false
 title = "about"
-
 +++
 
 # The Go Blog 日本語訳
