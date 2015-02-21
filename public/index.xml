@@ -3,7 +3,7 @@
   <channel>
       <title>Recent Content on The Go Blog 日本語訳 </title>
       <generator uri="https://hugo.spf13.com">Hugo</generator>
-    <link>http://localhost:1313/index.xml/</link>
+    <link>https://ymotongpoo.github.io/goblog-ja/index.xml/</link>
     <language>ja-jp</language>
     
     
@@ -11,10 +11,10 @@
     
     <item>
       <title>package names</title>
-      <link>http://localhost:1313/package-names.html</link>
+      <link>https://ymotongpoo.github.io/goblog-ja/package-names.html</link>
       <pubDate>Wed, 04 Feb 2015 14:49:44 JST</pubDate>
       
-      <guid>http://localhost:1313/package-names.html</guid>
+      <guid>https://ymotongpoo.github.io/goblog-ja/package-names.html</guid>
       <description>
 
 &lt;h1 id=&#34;toc_0&#34;&gt;パッケージ名&lt;/h1&gt;
@@ -140,10 +140,10 @@ timer := time.NewTimer(d)            // timer は *time.Timer 型
     
     <item>
       <title>about</title>
-      <link>http://localhost:1313/about/</link>
+      <link>https://ymotongpoo.github.io/goblog-ja/about/</link>
       <pubDate>Wed, 04 Feb 2015 11:20:36 JST</pubDate>
       
-      <guid>http://localhost:1313/about/</guid>
+      <guid>https://ymotongpoo.github.io/goblog-ja/about/</guid>
       <description>
 
 &lt;h1 id=&#34;toc_0&#34;&gt;The Go Blog 日本語訳&lt;/h1&gt;
