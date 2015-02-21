@@ -166,6 +166,24 @@ timer := time.NewTimer(d)            // timer は *time.Timer 型
 書いたコードがみすぼらしい場合はパッケージを再構築しましょう。こういった姿勢でいれば、クライアント側で
 わかりやすいパッケージ名を定義することができ、メンテナンスもしやすいパッケージを作れます。</p>
 
+<h2 id="toc_4">パッケージのパス</h2>
+
+<p>Goのパッケージには名前とパスがあります。パッケージ名はソースファイルの中のpackage宣言で確認できます。
+クライアントコードではパッケージ名を公開された名前として接頭辞に使います。クライアントコードでは
+パッケージをインポートするときにパッケージのパスを使います。慣例的に、パッケージのパスの最後の要素は
+パッケージ名になっています。</p>
+
+<pre><code>import (
+    &quot;fmt&quot;                       // fmt パッケージ
+    &quot;os/exec&quot;                   // exec パッケージ
+    &quot;golang.org/x/net/context&quot;  // context パッケージ
+)
+</code></pre>
+
+<p>ビルドツールはパッケージ名をディレクトリと対応させます。goツールは環境変数 <a href="https://golang.org/doc/code.html#GOPATH">GOPATH</a> を使って、 &ldquo;<code>github.com/user/hello</code>&ldquo;
+というパスのファイルを <code>$GOPATH/src/github.com/user/hello</code> というディレクトリから探します。
+（もちろん、この動作はよく知られていることだとは思いますが、専門用語とパッケージの構造に関して明確にしておくことは大事です。）</p>
+
 	  </div>
 	</div>
   </div>
