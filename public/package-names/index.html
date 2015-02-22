@@ -184,6 +184,11 @@ timer := time.NewTimer(d)            // timer は *time.Timer 型
 というパスのファイルを <code>$GOPATH/src/github.com/user/hello</code> というディレクトリから探します。
 （もちろん、この動作はよく知られていることだとは思いますが、専門用語とパッケージの構造に関して明確にしておくことは大事です。）</p>
 
+<p><strong>ディレクトリ</strong> 標準ライブラリでは、関連したプロトコルやアルゴリズムを使っているパッケージをまとめるために
+ <code>crypto</code> 、 <code>cnotainer</code> 、 <code>encoding</code> 、 <code>image</code> というようにディレクトリを使っています。
+こういったディレクトリ内のパッケージ間は関連はありません。ディレクトリは単純にファイルを整理しているだけです。
+循環参照をしていない限り、どんなパッケージでもインポートすることが可能です。</p>
+
 	  </div>
 	</div>
   </div>

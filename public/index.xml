@@ -135,6 +135,11 @@ timer := time.NewTimer(d)            // timer は *time.Timer 型
 &lt;p&gt;ビルドツールはパッケージ名をディレクトリと対応させます。goツールは環境変数 &lt;a href=&#34;https://golang.org/doc/code.html#GOPATH&#34;&gt;GOPATH&lt;/a&gt; を使って、 &amp;ldquo;&lt;code&gt;github.com/user/hello&lt;/code&gt;&amp;ldquo;
 というパスのファイルを &lt;code&gt;$GOPATH/src/github.com/user/hello&lt;/code&gt; というディレクトリから探します。
 （もちろん、この動作はよく知られていることだとは思いますが、専門用語とパッケージの構造に関して明確にしておくことは大事です。）&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;ディレクトリ&lt;/strong&gt; 標準ライブラリでは、関連したプロトコルやアルゴリズムを使っているパッケージをまとめるために
+ &lt;code&gt;crypto&lt;/code&gt; 、 &lt;code&gt;cnotainer&lt;/code&gt; 、 &lt;code&gt;encoding&lt;/code&gt; 、 &lt;code&gt;image&lt;/code&gt; というようにディレクトリを使っています。
+こういったディレクトリ内のパッケージ間は関連はありません。ディレクトリは単純にファイルを整理しているだけです。
+循環参照をしていない限り、どんなパッケージでもインポートすることが可能です。&lt;/p&gt;
 </description>
     </item>
     
