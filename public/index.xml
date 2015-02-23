@@ -140,6 +140,14 @@ timer := time.NewTimer(d)            // timer は *time.Timer 型
  &lt;code&gt;crypto&lt;/code&gt; 、 &lt;code&gt;cnotainer&lt;/code&gt; 、 &lt;code&gt;encoding&lt;/code&gt; 、 &lt;code&gt;image&lt;/code&gt; というようにディレクトリを使っています。
 こういったディレクトリ内のパッケージ間は関連はありません。ディレクトリは単純にファイルを整理しているだけです。
 循環参照をしていない限り、どんなパッケージでもインポートすることが可能です。&lt;/p&gt;
+
+&lt;p&gt;異なるパッケージで曖昧さなしに同名の型を使えるように、異なるディレクトリで同名のパッケージを作ることができます。
+たとえば &lt;a href=&#34;https://golang.org/pkg/runtime/pprof&#34;&gt;runtime/pprof&lt;/a&gt; はプロファイリングツール &lt;a href=&#34;https://code.google.com/p/gperftools&#34;&gt;pprof&lt;/a&gt; で
+期待される書式のプロファイリングデータを生成し、一方で &lt;a href=&#34;https://golang.org/pkg/net/http/pprof&#34;&gt;net/http/pprof&lt;/a&gt; はこの書式でプロファイリングデータを
+表示するHTTPエンドポイントを提供します。クライアントコードではそれらのパッケージをインポートする際にはパッケージのパスを利用するので、
+混乱することはありません。もしクライアントのコードが今挙げた両方の &lt;code&gt;pprof&lt;/code&gt; パッケージを利用する必要がある場合には、片方あるいは両方のパッケージを
+&lt;a href=&#34;https://golang.org/ref/spec#Import_declarations&#34;&gt;リネーム&lt;/a&gt; することができます。パッケージをリネームする際には、
+ローカルの名前はパッケージ名のためのガイドラインに従いましょう。（すべて小文字で &lt;code&gt;under_score&lt;/code&gt; や &lt;code&gt;mixedCaps&lt;/code&gt; がないもの）&lt;/p&gt;
 </description>
     </item>
     

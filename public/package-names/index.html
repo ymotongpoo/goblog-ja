@@ -189,6 +189,14 @@ timer := time.NewTimer(d)            // timer は *time.Timer 型
 こういったディレクトリ内のパッケージ間は関連はありません。ディレクトリは単純にファイルを整理しているだけです。
 循環参照をしていない限り、どんなパッケージでもインポートすることが可能です。</p>
 
+<p>異なるパッケージで曖昧さなしに同名の型を使えるように、異なるディレクトリで同名のパッケージを作ることができます。
+たとえば <a href="https://golang.org/pkg/runtime/pprof">runtime/pprof</a> はプロファイリングツール <a href="https://code.google.com/p/gperftools">pprof</a> で
+期待される書式のプロファイリングデータを生成し、一方で <a href="https://golang.org/pkg/net/http/pprof">net/http/pprof</a> はこの書式でプロファイリングデータを
+表示するHTTPエンドポイントを提供します。クライアントコードではそれらのパッケージをインポートする際にはパッケージのパスを利用するので、
+混乱することはありません。もしクライアントのコードが今挙げた両方の <code>pprof</code> パッケージを利用する必要がある場合には、片方あるいは両方のパッケージを
+<a href="https://golang.org/ref/spec#Import_declarations">リネーム</a> することができます。パッケージをリネームする際には、
+ローカルの名前はパッケージ名のためのガイドラインに従いましょう。（すべて小文字で <code>under_score</code> や <code>mixedCaps</code> がないもの）</p>
+
 	  </div>
 	</div>
   </div>
