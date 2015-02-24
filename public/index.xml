@@ -157,7 +157,50 @@ timer := time.NewTimer(d)            // timer は *time.Timer 型
 こういったパッケージ名では、クライアント側でどのようにそのパッケージを利用するかがわかりませんし、メンテナーがパッケージのメンテナンスに集中
 することが難しくなります。やがて、こういったパッケージは依存関係が大きくなり、ビルド時間が深刻にそして不必要に遅くなります。特に、大きな
 プログラムでこの傾向があります。またこのようなパッケージ名は一般的な名前なので、クライアント側でインポートされている他のパッケージと
-衝突しやすく、区別するためにクライアント側に新しい名前を考えさせることを強います。&lt;/p&gt;
+衝突しやすく、区別するためにクライアント側に新しい名前を考えさせることを強制します。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;一般的なパッケージに分割する&lt;/strong&gt; このようなパッケージを修正するために、共通の名前の要素を持った型と関数を探し
+そのような型や関数を独自のパッケージにまとめましょう。たとえば、次のようなコードがあったとします。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;package util
+func NewStringSet(...string) map[string]bool {...}
+func SortStringSet(map[string]bool) []string {...}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;クライアント側のコードは次のようになっているとします。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;set := util.NewStringSet(&amp;quot;c&amp;quot;, &amp;quot;a&amp;quot;, &amp;quot;b&amp;quot;)
+fmt.Println(util.SortStringSet(set))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;これらの関数を &lt;code&gt;util&lt;/code&gt; パッケージから取り出して、その内容に合う名前の新しいパッケージに移します。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;package stringset
+func New(...string) map[string]bool {...}
+func Sort(map[string]bool) []string {...}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;するとクライアント側のコードはこうなります。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;set := stringset.New(&amp;quot;c&amp;quot;, &amp;quot;a&amp;quot;, &amp;quot;b&amp;quot;)
+fmt.Println(stringset.Sort(set))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;一度このような変更をしてしまえば、新しいパッケージにどのような変更を加えればよいかわかりやすくなるでしょう。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;package stringset
+type Set map[string]bool
+func New(...string) Set {...}
+func (s Set) Sort() []string {...}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;このように変更することでクライアント側のコードはずっと簡潔になります。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;set := stringset.New(&amp;quot;c&amp;quot;, &amp;quot;a&amp;quot;, &amp;quot;b&amp;quot;)
+fmt.Println(set.Sort())
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;パッケージ名はパッケージの設計において最重要項目です。プロジェクト内の無意味なパッケージ名は排除しましょう。&lt;/p&gt;
 </description>
     </item>
     
