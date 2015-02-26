@@ -1,3 +1,8 @@
 baseurl = "/"
 languageCode = "ja-jp"
 title = "The Go Blog 日本語訳"
+
+[author]
+    name = "The Go team and Yoshi Yamaguchi"
+    github = "ymotongpoo"
+    twitter = "ymotongpoo"
