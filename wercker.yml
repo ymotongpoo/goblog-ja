@@ -7,6 +7,6 @@ build:
         flags: --disableSitemap=true --baseUrl="https://ymotongpoo.github.io/goblog-ja/"
 deploy:
   steps:
-    - lvivier/step-gh-pages:
+    - lukevivier/gh-pages:
         token: $GIT_TOKEN
         basedir: public
