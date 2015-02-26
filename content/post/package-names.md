@@ -2,7 +2,6 @@
 date = "2015-02-04T14:49:44+09:00"
 draft = false
 title = "package names"
-url = "package-names.html"
 +++
 
 # パッケージ名
