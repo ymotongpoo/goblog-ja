@@ -5,3 +5,8 @@ build:
         version: 0.12
         theme: nofancy
         flags: --disableSitemap=true --baseUrl="https://ymotongpoo.github.io/goblog-ja/"
+deploy:
+  steps:
+    - lvivier/step-gh-pages:
+        token: $GIT_TOKEN
+        basedir: public
