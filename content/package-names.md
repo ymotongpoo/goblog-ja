@@ -203,3 +203,17 @@ fmt.Println(set.Sort())
 パッケージが一緒に使われることはよくあるので、パッケージには個別の名前をつけるべきです。そうすることで、
 混乱を減らし、クライアント側のコードでパッケージ名のリネームをする必要が少なくなります。
 同様の理由で、よく知られた `io` や `http` といった標準パッケージと同名のパッケージ名も避けましょう。
+
+## 結論
+パッケージ名はGoのプログラムを書く上で良い命名の中心となるものです。時間をかけて良いパッケージ名を選び、
+コードをきれいに整頓しましょう。そうすることであなたのパッケージは使う側が理解しやすく使いやすいものとなり、
+またメンテナーが優雅に開発を続けられるプロジェクトとなることでしょう。
+
+## あわせて読みたい
+
+* [Effective Go](https://golang.org/doc/effective_go.html)
+* [How to Write Go Code](https://golang.org/doc/code.html)
+* [Organizing Go Gode (2012年のブログポスト)](https://blog.golang.org/organizing-go-code)
+* [Organizing Go Code (2014年のGoogle I/Oでのプレゼン)](https://talks.golang.org/2014/organizeio.slide)
+
+By Sameer Ajmani

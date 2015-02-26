@@ -1,6 +1,8 @@
 baseurl = "/"
 languageCode = "ja-jp"
 title = "The Go Blog 日本語訳"
+copyright = "Except as noted, the content of this page is licensed under the Creative Commons Attribution 3.0 License,
+and code is licensed under a BSD license. The Go team (original) and Yoshi Yamaguchi (translation)" 
 
 [author]
     name = "The Go team and Yoshi Yamaguchi"
