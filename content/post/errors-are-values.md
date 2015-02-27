@@ -57,3 +57,23 @@ if err := scanner.Err(); err != nil {
     // エラーの処理
 }
 ```
+
+たしかに、エラーがnilかどうかの確認はしていますが、その処理は一度しかしていません。 `Scan` メソッドは
+代わりに次のように定義することもできたでしょう。
+
+```
+func (s *Scanner) Scan() (token []byte, error)
+```
+
+この場合はクライアント側のコードは次のようになるでしょう。（トークンの読み出し方に依存します）
+
+```
+scanner := bufio.NewScanner(input)
+for {
+    token, err := scanner.Scan()
+    if err != nil {
+        return err // あるいはbreak
+    }
+    // tokenの処理
+}
+```
