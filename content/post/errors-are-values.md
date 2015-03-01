@@ -157,3 +157,32 @@ type errWriter struct {
     err error
 }
 ```
+
+そして、 `write` という1つのメソッドを付与しました。これは標準的な `Write` というシグネチャで
+ある必要はなく、また違いを明確にするという理由もあって、小文字にしました。 `write` メソッドは
+`errWriter` の中にある `Writer` の `Write` メソッドを呼び、後に参照される最初のエラーを
+記録します。
+
+```
+func (ew *errWriter) write(buf []byte) {
+    if ew.err != nil {
+        return
+    }
+    _, ew.err = ew.w.Write(buf)
+}
+```
+
+エラーが発生すると、ただちに `write` メソッドは何も処理しなくなり、最初のエラーが保存されただけの状態になります。
+
+この `errWrite` 型と `write` メソッドで、先のコードは次のようにリファクタリングされます。
+
+```
+ew := &errWriter{w: fd}
+ew.write(p0[a:b])
+ew.write(p1[c:d])
+ew.write(p2[e:f])
+// and so on
+if ew.err != nil {
+    return ew.err
+}
+```
