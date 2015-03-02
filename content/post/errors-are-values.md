@@ -1,7 +1,7 @@
 +++
 date = "2015-01-12T12:00:00+09:00"
 draft = false
-title = "エラーは値"
+title = "エラーは値 (Errors are values)"
 +++
 
 # エラーは値
