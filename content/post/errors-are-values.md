@@ -181,7 +181,7 @@ ew := &errWriter{w: fd}
 ew.write(p0[a:b])
 ew.write(p1[c:d])
 ew.write(p2[e:f])
-// and so on
+// 以下続く
 if ew.err != nil {
     return ew.err
 }
@@ -196,3 +196,20 @@ if ew.err != nil {
 また、 `errWriter` があれば、特にもっとわざとらしくない例で、より多くのことができるようになります。
 バイト数を積算していくこともできます。アトミックに一つのバッファに書き込みを行うこともできます。
 さらにもっとたくさんのことができます。
+
+事実、このパターンは標準ライブラリによく出てきます。 `archive/zip` や `net/http` といったパッケージが使っています。
+より顕著な例としては `bufio` パッケージが実際に `errWriter` の考え方を実装しています。
+`bufio.Writer.Write` はエラーを返しますが、それは `io.Writer` インターフェースを考慮してのことです。
+`bufio.Writer` の `Write` メソッドは、ちょうど先の例の `errWriter.write` メソッドと同様の振る舞いになっています。
+`Flush` がエラーを出力するので、先の例はこのように書くことができます。
+
+```
+b := bufio.NewWriter(fd)
+b.Write(p0[a:b])
+b.Write(p1[c:d])
+b.Write(p2[e:f])
+// 以下続く
+if b.Flush() != nil {
+    return b.Flush()
+}
+```
