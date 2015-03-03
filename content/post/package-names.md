@@ -6,6 +6,8 @@ title = "パッケージ名 (Package names)"
 
 # パッケージ名
 
+[Package names](http://blog.golang.org/package-names) By Sameer Ajmani
+
 ## 序文
 
 Goのコードはパッケージの形で整理されています。同一パッケージ内では、どのような識別子（名前）も

@@ -6,6 +6,8 @@ title = "エラーは値 (Errors are values)"
 
 # エラーは値
 
+[Errors are values](http://blog.golang.org/errors-are-values) by Rob Pike
+
 Goプログラマ、特にまだGoに不慣れな開発者に共通する議論の話題といえば、エラー処理の方法でしょう。
 議論が次のようなコードの連続になることを嘆く結論に至ることがしばしばあります。
 
