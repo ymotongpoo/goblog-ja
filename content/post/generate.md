@@ -28,6 +28,13 @@ title = "コードのジェネレート (Generating code)"
 
 いままでは、ありませんでした。
 
+[最新のGoのリリース](http://blog.golang.org/go1.4)である、1.4ではそのようなツールを実行しやすくする
+新しいコマンドが追加されました。 `go generate` というコマンド名で、Goのソースコード内の特別なコメントを
+スキャンすることで動作します。 `go generate` は `go build` の一部ではないことを理解するのが大切です。
+`go generate` は依存性の解析はまったく行わず、また明示的に `go build` の前に実行されなければなりません。
+`go generate` はGoパッケージの利用者ではなく、その作者が利用することを意図したものです。
+
+
 ## あわせて読みたい
 
 * [Introducing the Go Race Detector](https://blog.golang.org/race-detector)
