@@ -108,6 +108,28 @@ const (
 
 デバッグ用途にこれらの定数を綺麗に表示したい、つまりシグネチャ付きのメソッドが欲しくなります。
 
+```
+func (p Pill) String() string
+```
+
+手でそのコードを書くのは簡単です。おそらく次のようになるでしょう。
+
+```
+func (p Pill) String() string {
+    switch p {
+    case Placebo:
+        return "Placebo"
+    case Aspirin:
+        return "Aspirin"
+    case Ibuprofen:
+        return "Ibuprofen"
+    case Paracetamol: // == Acetaminophen
+        return "Paracetamol"
+    }
+    return fmt.Sprintf("Pill(%d)", p)
+}
+```
+
 
 
 ## あわせて読みたい
