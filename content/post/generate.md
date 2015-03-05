@@ -89,6 +89,25 @@ go generateはMakeや他のビルド機構で出来なかったことはなに�
 $ go get golang.org/x/tools/cmd/stringer
 ```
 
+[`stringer`](http://godoc.org/golang.org/x/tools/cmd/stringer) のドキュメントからの例を持ってきました。
+あるコードに異なる錠剤の種類を定義するための整数の定数があったとします。
+
+```
+package painkiller
+
+type Pill int
+
+const (
+    Placebo Pill = iota
+    Aspirin
+    Ibuprofen
+    Paracetamol
+    Acetaminophen = Paracetamol
+)
+```
+
+デバッグ用途にこれらの定数を綺麗に表示したい、つまりシグネチャ付きのメソッドが欲しくなります。
+
 
 
 ## あわせて読みたい
