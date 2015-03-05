@@ -52,6 +52,20 @@ go tool yacc -o gopher.go -p parser gopher.y
 //go:generate go tool yacc -o gopher.go -p parser gopher.y
 ```
 
+このテキストは先のコマンドに、 `go generate` が認識するための特別なコメントを先頭に付けただけのものです。
+コメントは行頭から開始しなくてはならず、また `//` と `go:generate` の間にスペースを入れてはいけません。
+そのマーカー以降は `go generate` が実行するコマンドを指定します。
+
+では実行してみましょう。ソースのディレクトリに移動し、 `go generate` を実行して、 `go build` 等を実行します。
+
+```
+$ cd $GOPATH/myrepo/gopher
+$ go generate
+$ go build
+$ go test
+```
+
+
 ## あわせて読みたい
 
 * [Introducing the Go Race Detector](https://blog.golang.org/race-detector)
