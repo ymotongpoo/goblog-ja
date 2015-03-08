@@ -1,0 +1,6 @@
+interface       インターフェース
+channel         チャンネル
+goroutine       ゴルーチン
+struct          構造体
+client code     クライアント側のコード
+C               C言語
