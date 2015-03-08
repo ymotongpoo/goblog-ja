@@ -2,5 +2,8 @@ interface       インターフェース
 channel         チャンネル
 goroutine       ゴルーチン
 struct          構造体
+array           配列
+slice           スライス
+map             マップ
 client code     クライアント側のコード
 C               C言語
