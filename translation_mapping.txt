@@ -5,5 +5,9 @@ struct          構造体
 array           配列
 slice           スライス
 map             マップ
+raw string      raw文字列
+
+constant(s)     定数
+
 client code     クライアント側のコード
 C               C言語
