@@ -102,3 +102,22 @@ const hello = "Hello, 世界"
 ```
 const typedHello string = "Hello, 世界"
 ```
+
+`typeHello` の宣言は、等号の前で `string` 型が明示されていることに注目してください。これは `typeHello` が
+Goの `string` 型であることを意味していて、Goでの異なる型の変数に代入できないことを意味しています。
+これは次のコードは動きますが、
+
+```
+var s string
+s = typedHello
+fmt.Println(s)
+```
+
+このコードは動かないということです。
+
+```
+type MyString string
+var m MyString
+m = typedHello // 型error
+fmt.Println(m)
+```
