@@ -103,7 +103,7 @@ const hello = "Hello, 世界"
 const typedHello string = "Hello, 世界"
 ```
 
-`typeHello` の宣言は、等号の前で `string` 型が明示されていることに注目してください。これは `typeHello` が
+`typedHello` の宣言は、等号の前で `string` 型が明示されていることに注目してください。これは `typedHello` が
 Goの `string` 型であることを意味していて、Goでの異なる型の変数に代入できないことを意味しています。
 これは次のコードは動きますが、
 
@@ -118,6 +118,41 @@ fmt.Println(s)
 ```
 type MyString string
 var m MyString
-m = typedHello // 型error
+m = typedHello // 型エラー
 fmt.Println(m)
 ```
+
+変数 `m` は `MyString` 型で、異なる型には値は代入できません。 `MyString` 型の値のみ代入できます。
+たとえば次のコードを見てください。
+
+```
+const myStringHello MyString = "Hello, 世界"
+m = myStringHello // OK
+fmt.Println(m)
+```
+
+あるいは型変換をさせてもできるでしょう。
+
+```
+m = MyString(typedHello)
+fmt.Println(m)
+```
+
+_型付けされていない_ 文字列定数の話に戻ると、型がないことによって、型付けされた変数に代入しても
+型エラーが発生させないというのは役に立つ性質です。つまり、このようなコードや
+
+```
+m = "Hello, 世界"
+```
+
+あるいはこのように書けるのです。
+
+```
+m = hello
+```
+
+なぜなら、型付けされた定数の `typedHello` や `myStringHello` とは違って、型付けされていない定数の `"Hello, 世界"` や
+`hello` には _型がないからです_ 。 `string` と互換性のあるどのような型の変数にもエラーなしで代入できます。
+
+これらの型付けされていない文字列定数はもちろん文字列であるため、文字列を使って良い所でのみどこでも使えますが、
+`string` という _型_ を持っていないのです。
