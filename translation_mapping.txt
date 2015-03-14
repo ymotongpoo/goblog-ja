@@ -6,6 +6,7 @@ array           配列
 slice           スライス
 map             マップ
 raw string      raw文字列
+rune            ルーン
 
 constant(s)     定数
 
