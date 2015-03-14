@@ -290,3 +290,15 @@ mf = Zero      // OK
 mf = TypedZero // ダメ
 fmt.Println(mf)
 ```
+
+ひとつこの例でうまくいかないことがあるとすればGoには _2つの_ 浮動小数点数があることです。
+`float32` と `float64` です。型付けされていない浮動小数点数定数は `float32` に問題なく代入できますが、
+そのデフォルト型は `float64` です。
+
+```
+var f32 float32
+f32 = 0.0
+f32 = Zero      // OK: Zeroは型付けされていない
+f32 = TypedZero // ダメ: TypedZeroはfloat64でありfloat32ではない
+fmt.Println(f32)
+```
