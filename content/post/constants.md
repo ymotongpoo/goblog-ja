@@ -353,3 +353,17 @@ fmt.Println(pi)
 書きやすくなっています。また、浮動小数点の無限、アンダーフロー、 `NaN` といったコーナーケースが
 定数の式では発生しません。（ゼロ除算はコンパイル時エラーとなり、またすべてが数字の場合には
 「not a number」というようなエラーは発生しえません。）
+
+## 複素数
+複素数定数は多くの点で浮動小数点数定数と同様に振る舞います。いつもの例を複素数でやってみます。
+
+```
+type MyComplex128 complex128
+const I = (0.0 + 1.0i)
+const TypedI complex128 = (0.0 + 1.0i)
+var mc MyComplex128
+mc = (0.0 + 1.0i) // OK
+mc = I            // OK
+mc = TypedI       // ダメ
+fmt.Println(mc)
+```
