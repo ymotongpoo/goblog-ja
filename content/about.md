@@ -11,6 +11,8 @@ title = "about"
 本家と同様に訳文本文は Creative Commons Attribution 3.0 License で公開し、
 ソースコードは BSD License とします。
 
-ドキュメント本体はMarkdownをHugoでビルドしていますので、修正は `master` ブランチへ
+ドキュメント本体はMarkdownを [Hugo](http://gohugo.io/) でビルドしていますので、修正は `master` ブランチへ
 Pull Requestをお願いします。
 https://github.com/ymotongpoo/goblog-ja
+
+ビルドは [wercker](https://app.wercker.com/#applications/54eea70ed9b146366338d508/) で継続的に実施しています。
