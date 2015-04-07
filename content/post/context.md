@@ -16,7 +16,7 @@ Goで書かれたサーバでは、サーバに来たリクエストはそれぞ
 
 Googleで私たちは、簡単にAPIの境界をまたぐリクエスト固有の値やキャンセルのシグナル、期限などを、
 あるリクエストに関係するすべてのゴルーチンに投げることが出来る、 `context` パッケージというパッケージを開発しました。
-パッケージは [golang.org/x/net/context](http://godoc.org/golang.org/x/net/context) に[公開されています。][1]
+パッケージは [golang.org/x/net/context](http://godoc.org/golang.org/x/net/context) に [公開されています。][1]
 この記事ではそのパッケージの使い方と実際に動作する例を紹介したいと思います。
 
-[1] 訳註: 原文では `code.google.com/p/go.net/context` を参照していますが、現状に合わせてURLを変更しました。
+  [1] 訳註: 原文では `code.google.com/p/go.net/context` を参照していますが、現状に合わせてURLを変更しました。
