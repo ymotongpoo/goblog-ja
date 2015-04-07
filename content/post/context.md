@@ -71,7 +71,7 @@ type Context interface {
 これらの値は木構造になっていて、 `Context` がキャンセルされたときに、そこから派生した `Context` もすべてキャンセルされます。
 
 
-`Background` はすべての `Context` 木構造のねになっていて、決してキャンセルされることはありません。
+`Background` はすべての `Context` 木構造の根になっていて、決してキャンセルされることはありません。
 
 ```
 // Background は空の Context を返します。
@@ -79,4 +79,25 @@ type Context interface {
 // Backgroundは通常、main、init、テストの中で使われ、到着するリクエストの
 // 最上位の Context として使われます。
 func Background() Context
+```
+
+`WithCancel` と `WithTimeout` は派生した `Context` を返します。
+この `Context` は親の `Context` よりも早くキャンセルされます。
+到着するリクエストに紐付いた `Context` は通常リクエストハンドラが戻すとキャンセルされます。
+`WithCancel` は複数のレプリカを使うときにまた冗長なリクエストをキャンセルするのにも便利です。
+`WithTimeout` はバックエンドサーバーへのリクエストの期限を設定するのに便利です。
+
+```
+// WithCancel は parent のコピーを返し、 parent.Done が閉じられた、
+// またはキャンセルが呼ばれるとすぐに、その Done チャンネルが閉じられます。
+func WithCancel(parent Context) (ctx Context, cancel CancelFunc)
+
+// CancelFunc は Context をキャンセルします。
+type CancelFunc func()
+
+// WithTimeout は parent のコピーを返し、 parent.Done が閉じられた、
+// または timeout が過ぎるとすぐに、その Done チャンネルが閉じられます。
+// Context の Deadline は 現在時刻+timeout か親の期限のどちらか早いほうに設定されます。
+// もしタイマーがまだ動いていた場合、キャンセル関数はそのリソースを解放します。
+func WithTimeout(parent Context, timeout time.Duration) (Context, CancelFunc)
 ```
