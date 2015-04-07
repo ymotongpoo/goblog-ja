@@ -44,3 +44,9 @@ type Context interface {
 ```
 
 （この説明は要約されたもので、 [godoc](http://godoc.org/golang.org/x/net/context) が正式なものです。）
+
+`Done` メソッドは、 `Context` の代わりに動作する関数に対するキャンセルシグナルとして
+振る舞うチャンネルを返します。チャンネルが閉じられたときに、関数は処理を中断して戻るべきです。
+`Err` メソッドはなぜその `Context` がキャンセルされたかを示すエラーを返します。
+[パイプラインとキャンセル](https://blog.golang.org/pipelines) の記事では `Done` チャンネルの
+イディオムについてより詳細に議論しています。
