@@ -1,0 +1,75 @@
+[submodule "hyde"]
+	path = hyde
+	url = https://github.com/spf13/hyde.git
+[submodule "herring-cove"]
+	path = herring-cove
+	url = https://github.com/spf13/herring-cove.git
+[submodule "lanyon"]
+	path = lanyon
+	url = https://github.com/tummychow/lanyon-hugo.git
+[submodule "hugo-incorporated"]
+	path = hugo-incorporated
+	url = https://github.com/nilproductions/hugo-incorporated.git
+[submodule "simple-a"]
+	path = simple-a
+	url = https://github.com/AlexFinn/simple-a.git
+[submodule "journal"]
+	path = journal
+	url = https://github.com/mpas/hugo-journal.git
+[submodule "liquorice"]
+	path = liquorice
+	url = https://github.com/eliasson/liquorice.git
+[submodule "hyde-x"]
+	path = hyde-x
+	url = https://github.com/zyro/hyde-x.git
+[submodule "purehugo"]
+	path = purehugo
+	url = https://github.com/dplesca/purehugo.git
+[submodule "tinyce"]
+	path = tinyce
+	url = https://github.com/roperzh/tinyce-hugo-theme.git
+[submodule "html5"]
+	path = html5
+	url = https://github.com/simonmika/hugo-theme-html5.git
+[submodule "persona"]
+	path = persona
+	url = https://github.com/aries1980/hugo-theme-persona.git
+[submodule "redlounge"]
+	path = redlounge
+	url = https://github.com/tmaiaroto/hugo-redlounge.git
+[submodule "hugo-uno"]
+	path = hugo-uno
+	url = https://github.com/SenjinDarashiva/hugo-uno.git
+[submodule "hugoscroll"]
+	path = hugoscroll
+	url = https://github.com/SenjinDarashiva/hugoscroll.git
+[submodule "stou-dk-theme"]
+	path = stou-dk-theme
+	url = https://github.com/stou/stou-dk-theme.git
+[submodule "landing-page-hugo"]
+	path = landing-page-hugo
+	url = https://github.com/crakjie/landing-page-hugo.git
+[submodule "hugo-base-theme"]
+	path = hugo-base-theme
+	url = https://github.com/crakjie/hugo-base-theme.git
+[submodule "poopshow"]
+	path = poopshow
+	url = https://github.com/esell/poopshow.git
+[submodule "aglaus"]
+	path = aglaus
+	url = https://github.com/dim0627/hugo_theme_aglaus
+[submodule "nofancy"]
+	path = nofancy
+	url = https://github.com/gizak/nofancy.git
+[submodule "twentyfourteen"]
+	path = twentyfourteen
+	url = https://github.com/jaden/twentyfourteen
+[submodule "tachyons"]
+	path = tachyons
+	url = https://github.com/marloncabrera/tachyons.git
+[submodule "vienna"]
+	path = vienna
+	url = https://github.com/keichi/vienna.git
+[submodule "beg"]
+	path = beg
+	url = https://github.com/dim0627/hugo_theme_beg.git
