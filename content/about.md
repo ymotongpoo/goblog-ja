@@ -16,3 +16,6 @@ Pull Requestをお願いします。
 https://github.com/ymotongpoo/goblog-ja
 
 ビルドは [wercker](https://app.wercker.com/#applications/54eea70ed9b146366338d508/) で継続的に実施しています。
+
+## Disclaimer
+のんびり翻訳してるので気長にお待ちください。誤訳、typoなどは気軽にissueをあげてください。
