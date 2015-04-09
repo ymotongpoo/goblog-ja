@@ -101,3 +101,12 @@ type CancelFunc func()
 // もしタイマーがまだ動いていた場合、キャンセル関数はそのリソースを解放します。
 func WithTimeout(parent Context, timeout time.Duration) (Context, CancelFunc)
 ```
+
+`WithValue` はリクエスト固有の値を `Context` に紐付ける方法を提供します。
+
+```
+// WithValue は親のコピーを返し、そのValueメソッドがkeyに対しvalを返すようにします。
+func WithValue(parent Context, key interface{}, val interface{}) Context
+```
+
+`context` パッケージの使い方を理解するには動く実例を通して見るのが最良でしょう。
