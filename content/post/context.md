@@ -110,3 +110,16 @@ func WithValue(parent Context, key interface{}, val interface{}) Context
 ```
 
 `context` パッケージの使い方を理解するには動く実例を通して見るのが最良でしょう。
+
+## 例: Google ウェブ検索
+一つの例は `/search?q=golang&timeout=1s` のようなURLを処理して「golang」という検索クエリを
+[Google Web Search API](https://developers.google.com/web-search/docs/) に投げて、
+その結果を表示するようなHTTPサーバーです。 `timeout` パラメータはサーバーに指定時間が経過したら
+リクエストをキャンセルするように伝えます。
+
+コードは3つのパッケージに分かれています。
+
+* [server](https://blog.golang.org/context/server/server.go) は `main` 関数と `/search` のハンドラーを提供します。
+* [userip](https://blog.golang.org/context/userip/userip.go) はリクエストからユーザーのIPアドレスを抜き出し、 `Context` に紐付ける関数を提供します。
+
+* [google](https://blog.golang.org/context/google/google.go) はGoogleにクエリを送信する `Search` 関数を提供します。

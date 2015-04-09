@@ -12,3 +12,7 @@ constant(s)     定数
 
 client code     クライアント側のコード
 C               C言語
+
+server          サーバー
+hanlder         ハンドラー
+user            ユーザー
