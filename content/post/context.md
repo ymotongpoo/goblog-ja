@@ -123,3 +123,29 @@ func WithValue(parent Context, key interface{}, val interface{}) Context
 * [userip](https://blog.golang.org/context/userip/userip.go) はリクエストからユーザーのIPアドレスを抜き出し、 `Context` に紐付ける関数を提供します。
 
 * [google](https://blog.golang.org/context/google/google.go) はGoogleにクエリを送信する `Search` 関数を提供します。
+
+## サーバーのプログラム
+[server](https://blog.golang.org/context/server/server.go) のプログラムは `/serach?q=golang` のようなリクエストを処理して
+`golang` という検索クエリによるGoogle検索の最初の結果いくつかを返します。サーバーでは `handleSearch` という関数を `/search` のエンドポイントとして
+登録しています。ハンドラーは `ctx` という最初の `Context` を生成して、ハンドラーが値を返すときにそれがキャンセルされるように設定します。
+もしリクエストに `timeout` というURLパラメーターが含まれていたら、 `Context` は自動的に期限が来たらキャンセルされます。
+
+```
+func handleSearch(w http.ResponseWriter, req *http.Request) {
+    // ctx はこのハンドラーの Context です。 cancel を呼ぶことで
+    // ctx.Done チャンネルが閉じられます。これで、このハンドラーからのリクエスト用の
+    // キャンセルシグナルです。
+    var (
+        ctx    context.Context
+        cancel context.CancelFunc
+    )
+    timeout, err := time.ParseDuration(req.FormValue("timeout"))
+    if err == nil {
+        // リクエストにはタイムアウトがあるので、期限が来たら自動的にキャンセルされる
+        // コンテキストを作成します。
+        ctx, cancel = context.WithTimeout(context.Background(), timeout)
+    } else {
+        ctx, cancel = context.WithCancel(context.Background())
+    }
+    defer cancel() // handleSearchが値を返したらすぐに ctx をキャンセルします。
+```
