@@ -191,3 +191,32 @@ type key int
 // もしこのパッケージが他のコンテキストのキーであったなら、別の整数値になっていたことでしょう。
 const userIPKey key = 0
 ```
+
+`FromRequest` は `userIP` の値を `http.Request` から抜き出します。
+
+```
+func FromRequest(req *http.Request) (net.IP, error) {
+    ip, _, err := net.SplitHostPort(req.RemoteAddr)
+    if err != nil {
+        return nil, fmt.Errorf("userip: %q is not IP:port", req.RemoteAddr)
+    }
+```
+
+`NewContext` は与えられた `userIP` の値を持つ新しい `Context` を返します。
+
+```
+func NewContext(ctx context.Context, userIP net.IP) context.Context {
+    return context.WithValue(ctx, userIPKey, userIP)
+}
+```
+
+`FromContext` は `Context` から `userIP` を抜き出します。
+
+```
+func FromContext(ctx context.Context) (net.IP, bool) {
+    // ctx.Value が nil を返す場合、 ctx はキーになる値を持っていません。
+    // このとき net.IP 型のアサーションは ok=false を返します。
+    userIP, ok := ctx.Value(userIPKey).(net.IP)
+    return userIP, ok
+}
+```
