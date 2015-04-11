@@ -2,6 +2,7 @@
 date = "2014-07-29T09:00:00+09:00"
 draft = false
 title = "Goの並行パターン：コンテキスト (Go Concurrency Pattern: Context)"
+tags = ["concurrency", "cancellation", "context", "gorilla", "tomb"]
 +++
 
 # Goの並行パターン：コンテキスト
