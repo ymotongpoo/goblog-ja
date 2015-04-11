@@ -149,3 +149,28 @@ func handleSearch(w http.ResponseWriter, req *http.Request) {
     }
     defer cancel() // handleSearchが値を返したらすぐに ctx をキャンセルします。
 ```
+
+このハンドラーは `google.Search` を `ctx` と `query` を使って呼び出します。
+
+```
+    // Google検索を実行して結果を表示します。
+    start := time.Now()
+    results, err := google.Search(ctx, query)
+    elapsed := time.Since(start)
+```
+
+検索に成功したら、ハンドラーは結果を返します。
+
+```
+    if err := resultsTemplate.Execute(w, struct {
+        Results          google.Results
+        Timeout, Elapsed time.Duration
+    }{
+        Results: results,
+        Timeout: timeout,
+        Elapsed: elapsed,
+    }); err != nil {
+        log.Print(err)
+        return
+    }
+```
