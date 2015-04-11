@@ -301,3 +301,20 @@ func httpDo(ctx context.Context, req *http.Request, f func(*http.Response, error
     }
 }
 ```
+
+## Context用のコードを適用する
+
+多くのサーバーフレームワークがリクエスト固有の値を保持するためのパッケージと型を提供しています。
+既存のフレームワークを使ったコードと `Context` パラメータを期待するコードの間の架け橋として
+`Context` インターフェースの新しい実装を定義することができます。
+
+たとえば、Gorillaの [github.com/gorilla/context](http://github.com/gorilla/context) パッケージは、
+HTTPリクエストからキーと値のペアへの対応表を提供することで、ハンドラーがデータと受け取ったリクエストを
+紐付けることができるようになっています。 [gorilla.go](https://blog.golang.org/context/gorilla/gorilla.go) では、
+`Value` メソッドがGorillaパッケージ内の特定のHTTPリクエストに紐付いた値を返すような `Context` の実装を提供しています。
+
+他のパッケージでは `Context` と似たキャンセルの仕組みをサポートしてきています。たとえば [Tomb](http://godoc.org/gopkg.in/tomb.v2)
+では、 `Dying` チャンネルを閉じることでキャンセルシグナルを送る `Kill` メソッドを提供しています。
+また `Tomb` は処理用のゴルーチンが終了するのを待つ、 `sync.WaitGroup` に似たメソッドも提供しています。
+[tomb.go](https://blog.golang.org/context/tomb/tomb.go) では、親の `Context` がキャンセルされる、もしくは
+与えられた `Tomb` が殺された場合にキャンセルされる `Context` の実装を提供しています。
