@@ -220,3 +220,84 @@ func FromContext(ctx context.Context) (net.IP, bool) {
     return userIP, ok
 }
 ```
+
+## google パッケージ
+[google.Search](https://blog.golang.org/context/google/google.go) 関数は [Google Web Search API](https://developers.google.com/web-search/docs/)
+に対してHTTPリクエストを送り、JSONエンコードされた結果をパースします。この関数は `Context` のパラメーター `ctx` を受け取り、もし `ctx.Done` が
+閉じられていたら、リクエストが実行中だったとしても、直ちに結果を返します。
+
+Google Web Search APIのリクエストには、クエリパラメータとして検索クエリとユーザーのIPアドレスが含まれています。
+
+```
+func Search(ctx context.Context, query string) (Results, error) {
+    // Google Search API へのリクエストの準備
+    req, err := http.NewRequest("GET", "https://ajax.googleapis.com/ajax/services/search/web?v=1.0", nil)
+    if err != nil {
+        return nil, err
+    }
+    q := req.URL.Query()
+    q.Set("q", query)
+
+    // ctx にユーザーのIPアドレスが会った場合、それをサーバーに転送します。
+    // Google API はサーバーが起動したリクエストとエンドユーザーのリクエストを区別するために
+    // ユーザーのIPアドレスを使います。
+    if userIP, ok := userip.FromContext(ctx); ok {
+        q.Set("userip", userIP.String())
+    }
+    req.URL.RawQuery = q.Encode()
+```
+
+`Search` はHTTPリクエストの発行、およびリクエストまたはレスポンスが処理中に `ctx.Done` が
+閉じられた場合のキャンセル処理のためにヘルパー関数である `httpDo` を使います。
+`Search` はHTTPレスポンスを処理するために `httpDo` にクロージャーを渡します。
+
+```
+    var results Results
+    err = httpDo(ctx, req, func(resp *http.Response, err error) error {
+        if err != nil {
+            return err
+        }
+        defer resp.Body.Close()
+
+        // JSON形式の検索結果をパースする。
+        // https://developers.google.com/web-search/docs/#fonje
+        var data struct {
+            ResponseData struct {
+                Results []struct {
+                    TitleNoFormatting string
+                    URL               string
+                }
+            }
+        }
+        if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+            return err
+        }
+        for _, res := range data.ResponseData.Results {
+            results = append(results, Result{Title: res.TitleNoFormatting, URL: res.URL})
+        }
+        return nil
+    })
+    // httpDo は先ほど渡したクロージャーが結果を返すのを待つので、ここで結果を読み込んでも安全です。
+    return results, err
+```
+
+`httpDo` 関数はHTTPリクエストを実行し、そのレスポンスを新しいゴルーチンで処理します。
+`ctx.Done` が閉じられた場合にはゴルーチンが終了する前にリクエストをキャンセルします。
+
+```
+func httpDo(ctx context.Context, req *http.Request, f func(*http.Response, error) error) error {
+    // HTTPリクエストをゴルーチン内で実行し、レスポンスを f に渡す。
+    tr := &http.Transport{}
+    client := &http.Client{Transport: tr}
+    c := make(chan error, 1)
+    go func() { c <- f(client.Do(req)) }()
+    select {
+    case <-ctx.Done():
+        tr.CancelRequest(req)
+        <-c // f が値を返すのを待つ
+        return ctx.Err()
+    case err := <-c:
+        return err
+    }
+}
+```
