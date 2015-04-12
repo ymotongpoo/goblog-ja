@@ -12,7 +12,7 @@
 		{{ range $name, $page := .Data.Pages }}
 		{{ if eq .Type "post" }}
 		<li>
-		  <a href="{{ .Permalink }}">{{ $page.Title }}</a>
+		  <a href="{{ .Permalink }}">{{ $page.Title }}</a><a href="http://b.hatena.ne.jp/entry/s/ymotongpoo.github.io/goblog-ja{{ .RelPermalink }}"><img src="http://b.hatena.ne.jp/entry/image/http://ymotongpoo.github.io/goblog-ja{{ .RelPermalink }}" alt="はてなブックマーク - {{ .Title }}" title="はてなブックマーク - {{ .Title }}"></a>
 
 		  <p class="footnote">
 			submitted <time datetime="{{ $page.Date.Format "2006-01-02T15:04:05Z07:00" }}" class="pull-right post-list timeago">{{ $page.Date.Format "2006-01-02T15:04:05Z07:00" }}</time>
