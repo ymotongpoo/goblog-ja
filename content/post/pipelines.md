@@ -118,3 +118,40 @@ func main() {
     }
 }
 ```
+
+`merge` 関数は、流入チャンネルそれぞれに対してゴルーチンを起動して、値を唯一の流出チャンネルに
+コピーすることで、チャンネルのリストを1つのチャンネルに変換します。すべての `output` ゴルーチンが
+起動したら、 `merge` は更にもう一つゴルーチンを起動して、そのチャンネルへの送信がすべて終わったら
+流出チャンネルを閉じます。
+
+閉じたチャンネルに送信するとパニックになるので、closeを呼ぶ前にすべての値が送信されていることを
+確実にすることが大事です。 [sync.WaitGroup](http://golang.org/pkg/sync/#WaitGroup) 型はこのような
+同期を用意する簡単な方法を提供しています。
+
+```
+func merge(cs ...<-chan int) <-chan int {
+    var wg sync.WaitGroup
+    out := make(chan int)
+
+    // cs 内の各入力チャンネルに対して output ゴルーチンを起動。
+    // output は c が閉じるまで c から out に値をコピーして、その後 wg.Done を呼び出す。
+    output := func(c <-chan int) {
+        for n := range c {
+            out <- n
+        }
+        wg.Done()
+    }
+    wg.Add(len(cs))
+    for _, c := range cs {
+        go output(c)
+    }
+
+    // output ゴルーチンがすべて終了したら out を閉じるためのゴルーチンを起動する。
+    // これは wg.Add が呼び出された後に起動しなければならない。
+    go func() {
+        wg.Wait()
+        close(out)
+    }()
+    return out
+}
+```
