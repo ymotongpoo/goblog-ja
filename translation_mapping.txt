@@ -16,3 +16,6 @@ C               C言語
 server          サーバー
 hanlder         ハンドラー
 user            ユーザー
+
+upstream        上流
+downstream      下流
