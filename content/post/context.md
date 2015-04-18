@@ -334,3 +334,14 @@ Googleでは、Goプログラマに受信および送信のリクエストの間
 コードを共有することをより簡単にします。
 
 By Sameer Ajmani
+
+## あわせて読みたい
+
+* [Go Concurrency Patterns: Pipelines and cancellation](http://blog.golang.org/pipelines)
+  * [Goの並行パターン：コンテキスト (Go Concurrency Pattern: Context)](../context/)
+* [http://blog.golang.org/race-detector](http://blog.golang.org/race-detector)
+* [Advanced Go Concurrency Patterns](http://blog.golang.org/advanced-go-concurrency-patterns)
+* [Concurrency is not parallelism](http://blog.golang.org/concurrency-is-not-parallelism)
+* [Go videos from Google I/O 2012](http://blog.golang.org/go-videos-from-google-io-2012)
+* [Go Concurrency Patterns: Timing out, moving on](http://blog.golang.org/go-concurrency-patterns-timing-out-and)
+* [Share Memory By Communicating](http://blog.golang.org/share-memory-by-communicating)
