@@ -214,3 +214,14 @@ func gen(nums ...int) <-chan int {
     return out
 }
 ```
+
+先ほどのパイプラインの話に戻ると、 `merge` によって返される流出チャンネルにバッファを追加することを考えてみましょう。
+
+```
+func merge(cs ...<-chan int) <-chan int {
+    var wg sync.WaitGroup
+    out := make(chan int, 1) // 未読の入力に対して十分な領域
+    // ... あとはさきほどと同じ ...
+```
+
+
