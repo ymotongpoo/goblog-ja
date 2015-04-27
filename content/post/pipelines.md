@@ -255,5 +255,28 @@ func main() {
 }
 ```
 
+送信するゴルーチンでは、送信の操作を `select` 文に置き換えて、 `out` への送信があった場合、もしくは `done`
+から値を受信した場合に処理が進むようにします。 `done` の型は空の構造体です。その理由は、値は関係ないからです。
+つまり、単純に `out` への送信を辞めるべきタイミングを示すイベントを受信するだけのものだからです。
+`output` ゴルーチンは上流のステージがブロックされないように流入チャンネルの `c` に対してループを続けます。
+（すぐ後で、このループが早めに終われるようにするかをお話します）
 
+```
+func merge(done <-chan struct{}, cs ...<-chan int) <-chan int {
+    var wg sync.WaitGroup
+    out := make(chan int)
 
+    // output ゴルーチンを cs 内の各入力チャンネルに対して起動します。
+    // output は c がチャンネルを閉じるまで、あるいは、doneから値を受け取るまで
+    // 値をコピーし続け、その後 wg.Done を呼び出します。
+    output := func(c <-chan int) {
+        for n := range c {
+            select {
+            case out <- n:
+            case <-done:
+            }
+        }
+        wg.Done()
+    }
+    // ... あとはさきほどと同じ ...
+```
