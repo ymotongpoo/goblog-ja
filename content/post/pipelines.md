@@ -341,3 +341,23 @@ func merge(done <-chan struct{}, cs ...<-chan int) <-chan int {
     }
     // ... あとはさきほどと同じ ...
 ```
+
+同様に、 `sq` も `done` が閉じられるとすぐに終了処理を行うことができます。 `sq` は `defer` 文によって
+すべての終了処理経路の中で `out` チャンネルが閉じられることを保証しています。
+
+```
+func sq(done <-chan struct{}, in <-chan int) <-chan int {
+    out := make(chan int)
+    go func() {
+        defer close(out)
+        for n := range in {
+            select {
+            case out <- n * n:
+            case <-done:
+                return
+            }
+        }
+    }()
+    return out
+}
+```
