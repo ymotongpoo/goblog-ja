@@ -361,3 +361,286 @@ func sq(done <-chan struct{}, in <-chan int) <-chan int {
     return out
 }
 ```
+
+次がパイプラインを構築する際のガイドラインです。
+
+* ステージはすべての送信の操作が終わったときに出力チャンネルを閉じます。
+* ステージは入力チャンネルが閉じるまで値を受信し続けるか、さもなくば送信側を解放します。
+
+パイプラインは値を取得する十分バッファがあることを確認できる場合、もしくは受信側がチャンネルを放棄した時に
+明示的に送信側にシグナルを送れるようにすることで、送信者を解放します。
+
+## ディレクトリツリーをダイジェストする
+
+より現実的なパイプラインを考えてみましょう。
+
+MD5はファイルのチェックサムとして便利なメッセージダイジェストアルゴリズムです。
+コマンドラインツールの `md5sum` はファイル一覧のダイジェスト値を表示します。 
+
+```
+% md5sum *.go
+d47c2bbc28298ca9befdfbc5d3aa4e65  bounded.go
+ee869afd31f83cbb2d10ee81b2b831dc  parallel.go
+b88175e65fdcbc01ac08aaf1fd9b5e96  serial.go
+```
+
+私たちのサンプルプログラムは `md5sum` に似ていますが、ディレクトリを引数に取り、その配下にあるファイルをパス順に並べ、
+それぞれのダイジェスト値を表示します。
+
+```
+% go run serial.go .
+d47c2bbc28298ca9befdfbc5d3aa4e65  bounded.go
+ee869afd31f83cbb2d10ee81b2b831dc  parallel.go
+b88175e65fdcbc01ac08aaf1fd9b5e96  serial.go
+```
+
+`main` 関数は、パス名とダイジェスト値のマップを返す `MD5All` というヘルパー関数を呼び出し、それをソートして結果を表示します。
+
+```
+func main() {
+    // 指定されたディレクトリ配下のすべてのファイルのMD5チェックサムを計算し、
+    // パス名順に結果を並べて表示する。
+    m, err := MD5All(os.Args[1])
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+    var paths []string
+    for path := range m {
+        paths = append(paths, path)
+    }
+    sort.Strings(paths)
+    for _, path := range paths {
+        fmt.Printf("%x  %s\n", m[path], path)
+    }
+}
+```
+
+`MD5All` 関数が議論の対象です。　`serial.go` では、並行性をまったく使わずに、
+ディレクトリを再帰探索しながら単順に個々のファイルを読み込んで、チェックサムを計算しています。
+
+```
+// MD5All は root 配下のすべてのファイルを読み込み、各ファイルのファイルパスとMD5チェックサムの
+// マップを返します。ディレクトリの再帰探索の失敗、あるいは読み込みの失敗がが発生したら
+// MD5Allはエラーを返します。
+func MD5All(root string) (map[string][md5.Size]byte, error) {
+    m := make(map[string][md5.Size]byte)
+    err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+        if err != nil {
+            return err
+        }
+        if !info.Mode().IsRegular() {
+            return nil
+        }
+        data, err := ioutil.ReadFile(path)
+        if err != nil {
+            return err
+        }
+        m[path] = md5.Sum(data)
+        return nil
+    })
+    if err != nil {
+        return nil, err
+    }
+    return m, nil
+}
+```
+
+## 並列ダイジェスト
+
+[parallel.go](https://blog.golang.org/pipelines/parallel.go)　では `MD5All` を2段階のパイプラインに分けています。
+第1段階である `sumFiles` では、ディレクトリを探索し個々のファイルをそれぞれのゴルーチンでダイジェストし、
+`result` 型の値のチャンネルに結果を送ります。
+
+```
+type result struct {
+    path string
+    sum  [md5.Size]byte
+    err  error
+}
+```
+
+`sumFiles` は2つのチャンネルを返します。1つは結果を表すもの、もう1つは `filepath.Walk` によって返されるエラーです。
+ディレクトリ探索の関数は個々のファイルを処理する新しいゴルーチンを立ち上げ、 `done` を確認します。
+`done` が閉じられたら、探索を直ちに終了します。
+
+```
+func sumFiles(done <-chan struct{}, root string) (<-chan result, <-chan error) {
+    // For each regular file, start a goroutine that sums the file and sends
+    // the result on c.  Send the result of the walk on errc.
+    c := make(chan result)
+    errc := make(chan error, 1)
+    go func() {
+        var wg sync.WaitGroup
+        err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+            if err != nil {
+                return err
+            }
+            if !info.Mode().IsRegular() {
+                return nil
+            }
+            wg.Add(1)
+            go func() {
+                data, err := ioutil.ReadFile(path)
+                select {
+                case c <- result{path, md5.Sum(data), err}:
+                case <-done:
+                }
+                wg.Done()
+            }()
+            // Abort the walk if done is closed.
+            select {
+            case <-done:
+                return errors.New("walk canceled")
+            default:
+                return nil
+            }
+        })
+        // Walk has returned, so all calls to wg.Add are done.  Start a
+        // goroutine to close c once all the sends are done.
+        go func() {
+            wg.Wait()
+            close(c)
+        }()
+        // No select needed here, since errc is buffered.
+        errc <- err
+    }()
+    return c, errc
+}
+```
+
+MD5All receives the digest values from c. MD5All returns early on error, closing done via a defer:
+
+```
+func MD5All(root string) (map[string][md5.Size]byte, error) {
+    // MD5All closes the done channel when it returns; it may do so before
+    // receiving all the values from c and errc.
+    done := make(chan struct{})
+    defer close(done)
+
+    c, errc := sumFiles(done, root)
+
+    m := make(map[string][md5.Size]byte)
+    for r := range c {
+        if r.err != nil {
+            return nil, r.err
+        }
+        m[r.path] = r.sum
+    }
+    if err := <-errc; err != nil {
+        return nil, err
+    }
+    return m, nil
+}
+```
+
+## Bounded parallelism
+
+The MD5All implementation in [parallel.go](https://blog.golang.org/pipelines/parallel.go) starts a new goroutine for each file. In a directory with many large files, this may allocate more memory than is available on the machine.
+
+We can limit these allocations by bounding the number of files read in parallel. In [bounded.go](https://blog.golang.org/pipelines/bounded.go), we do this by creating a fixed number of goroutines for reading files. Our pipeline now has three stages: walk the tree, read and digest the files, and collect the digests.
+
+The first stage, walkFiles, emits the paths of regular files in the tree:
+
+```
+func walkFiles(done <-chan struct{}, root string) (<-chan string, <-chan error) {
+    paths := make(chan string)
+    errc := make(chan error, 1)
+    go func() {
+        // Close the paths channel after Walk returns.
+        defer close(paths)
+        // No select needed for this send, since errc is buffered.
+        errc <- filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+            if err != nil {
+                return err
+            }
+            if !info.Mode().IsRegular() {
+                return nil
+            }
+            select {
+            case paths <- path:
+            case <-done:
+                return errors.New("walk canceled")
+            }
+            return nil
+        })
+    }()
+    return paths, errc
+}
+```
+
+The middle stage starts a fixed number of digester goroutines that receive file names from paths and send results on channel c:
+
+```
+func digester(done <-chan struct{}, paths <-chan string, c chan<- result) {
+    for path := range paths {
+        data, err := ioutil.ReadFile(path)
+        select {
+        case c <- result{path, md5.Sum(data), err}:
+        case <-done:
+            return
+        }
+    }
+}
+```
+
+Unlike our previous examples, digester does not close its output channel, as multiple goroutines are sending on a shared channel. Instead, code in MD5All arranges for the channel to be closed when all the digesters are done:
+
+```
+    // Start a fixed number of goroutines to read and digest files.
+    c := make(chan result)
+    var wg sync.WaitGroup
+    const numDigesters = 20
+    wg.Add(numDigesters)
+    for i := 0; i < numDigesters; i++ {
+        go func() {
+            digester(done, paths, c)
+            wg.Done()
+        }()
+    }
+    go func() {
+        wg.Wait()
+        close(c)
+    }()
+```
+
+We could instead have each digester create and return its own output channel, but then we would need additional goroutines to fan-in the results.
+
+The final stage receives all the results from c then checks the error from errc. This check cannot happen any earlier, since before this point, walkFiles may block sending values downstream:
+
+```
+    m := make(map[string][md5.Size]byte)
+    for r := range c {
+        if r.err != nil {
+            return nil, r.err
+        }
+        m[r.path] = r.sum
+    }
+    // Check whether the Walk failed.
+    if err := <-errc; err != nil {
+        return nil, err
+    }
+    return m, nil
+}
+```
+
+## Conclusion
+
+This article has presented techniques for constructing streaming data pipelines in Go. Dealing with failures in such pipelines is tricky, since each stage in the pipeline may block attempting to send values downstream, and the downstream stages may no longer care about the incoming data. We showed how closing a channel can broadcast a "done" signal to all the goroutines started by a pipeline and defined guidelines for constructing pipelines correctly.
+
+Further reading:
+
+* [Go Concurrency Patterns](http://talks.golang.org/2012/concurrency.slide#1) ([video](https://www.youtube.com/watch?v=f6kdp27TYZs)) presents the basics of Go's concurrency primitives and several ways to apply them.
+* [Advanced Go Concurrency Patterns](http://blog.golang.org/advanced-go-concurrency-patterns) ([video](http://www.youtube.com/watch?v=QDDwwePbDtw)) covers more complex uses of Go's primitives, especially select.
+* Douglas McIlroy's paper [Squinting at Power Series](http://swtch.com/~rsc/thread/squint.pdf) shows how Go-like concurrency provides elegant support for complex calculations.
+
+By Sameer Ajmani
+
+## あわせて読みたい
+* [Go Concurrency Patterns: Context](https://blog.golang.org/context)
+* [Introducing the Go Race Detector](https://blog.golang.org/race-detector)
+* [Advanced Go Concurrency Patterns](https://blog.golang.org/advanced-go-concurrency-patterns)
+* [Concurrency is not parallelism](https://blog.golang.org/concurrency-is-not-parallelism)
+* [Go videos from Google I/O 2012](https://blog.golang.org/go-videos-from-google-io-2012)
+* [Go Concurrency Patterns: Timing out, moving on](https://blog.golang.org/go-concurrency-patterns-timing-out-and)
+* [Share Memory By Communicating](https://blog.golang.org/share-memory-by-communicating)
