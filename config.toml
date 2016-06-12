@@ -1,9 +1,8 @@
-baseurl = "/"
+baseurl = "https://www.ymotongpoo.com/works/goblog-ja/"
 languageCode = "ja-jp"
 title = "The Go Blog 日本語訳"
-copyright = "Except as noted, the content of this page is licensed under the Creative Commons Attribution 3.0 License, and code is licensed under a BSD license. The Go team (original) and Yoshi Yamaguchi (translation)" 
 
-[author]
-    name = "The Go team and Yoshi Yamaguchi"
-    github = "ymotongpoo"
-    twitter = "ymotongpoo"
+[Params]
+copyright = "Except as noted, the content of this page is licensed under the Creative Commons Attribution 3.0 License, and code is licensed under a BSD license. The Go team (original) and Yoshi Yamaguchi (translation)" 
+github = "https://github.com/ymotongpoo/goblog-ja/"
+analytics = "UA-6420772-8"

@@ -338,7 +338,7 @@ By Sameer Ajmani
 ## あわせて読みたい
 
 * [Go Concurrency Patterns: Pipelines and cancellation](http://blog.golang.org/pipelines)
-  * [Goの並行パターン：コンテキスト (Go Concurrency Pattern: Context)](../context/)
+  * [Goの並行パターン：パイプラインとキャンセル (Go Concurrency Pattern: Pipelines and cancellation)](../pipelines/)
 * [http://blog.golang.org/race-detector](http://blog.golang.org/race-detector)
 * [Advanced Go Concurrency Patterns](http://blog.golang.org/advanced-go-concurrency-patterns)
 * [Concurrency is not parallelism](http://blog.golang.org/concurrency-is-not-parallelism)

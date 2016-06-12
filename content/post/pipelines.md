@@ -509,7 +509,8 @@ func sumFiles(done <-chan struct{}, root string) (<-chan result, <-chan error) {
 }
 ```
 
-MD5All receives the digest values from c. MD5All returns early on error, closing done via a defer:
+`MD5All` は `c` からダイジェスト値を受け取ります。
+`MD5All` はエラーがあれば先にエラーを返し、 `defer` で `done` を閉じます。
 
 ```
 func MD5All(root string) (map[string][md5.Size]byte, error) {
