@@ -1,6 +1,6 @@
 +++
 date = "2014-03-13T08:19:15+09:00"
-draft = true
+draft = false
 title = "Goの並行パターン：パイプラインとキャンセル (Go Concurrency Patterns: Pipelines and cancellation)"
 tags = ["concurrency", "pipeline", "cancellation"]
 +++
@@ -535,22 +535,26 @@ func MD5All(root string) (map[string][md5.Size]byte, error) {
 }
 ```
 
-## Bounded parallelism
+## 限定的並列処理
 
-The MD5All implementation in [parallel.go](https://blog.golang.org/pipelines/parallel.go) starts a new goroutine for each file. In a directory with many large files, this may allocate more memory than is available on the machine.
+[parallel.go](https://blog.golang.org/pipelines/parallel.go) での `MD5All` の実装では各ファイルに対し新しいゴルーチンを
+起動させています。多くのファイルがあるディレクトリでは、この実装だとマシンに搭載されている以上のメモリをアロケートしかねません。
 
-We can limit these allocations by bounding the number of files read in parallel. In [bounded.go](https://blog.golang.org/pipelines/bounded.go), we do this by creating a fixed number of goroutines for reading files. Our pipeline now has three stages: walk the tree, read and digest the files, and collect the digests.
+並列処理の中で読み込まれるファイル数を限定することで、このアロケーションを制限することができます。
+[bounded.go](https://blog.golang.org/pipelines/bounded.go) では、ファイルの読み込みに決められた数のゴルーチンを
+作成することで実現しています。今回のパイプラインは3段階になっています。ディレクトリの再帰探索、ファイルの読み込みとダイジェスト値の計算、
+そしてダイジェスト値の回収です。
 
-The first stage, walkFiles, emits the paths of regular files in the tree:
+第1段階の `walkFiles` は、ファイルツリー内のファイルのパスを返します。
 
 ```
 func walkFiles(done <-chan struct{}, root string) (<-chan string, <-chan error) {
     paths := make(chan string)
     errc := make(chan error, 1)
     go func() {
-        // Close the paths channel after Walk returns.
+        // Walkが終了したらpathsチャンネルを閉じます。
         defer close(paths)
-        // No select needed for this send, since errc is buffered.
+        // errcはバッファ済みなのでselectは必要ありません。
         errc <- filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
             if err != nil {
                 return err
@@ -570,7 +574,8 @@ func walkFiles(done <-chan struct{}, root string) (<-chan string, <-chan error) 
 }
 ```
 
-The middle stage starts a fixed number of digester goroutines that receive file names from paths and send results on channel c:
+第2段階では一定数のダイジェスト値を計算するゴルーチンを起動します。このゴルーチンはパスにあるファイル名を受け取り、
+結果をチャンネル `c` に送ります。
 
 ```
 func digester(done <-chan struct{}, paths <-chan string, c chan<- result) {
@@ -585,10 +590,11 @@ func digester(done <-chan struct{}, paths <-chan string, c chan<- result) {
 }
 ```
 
-Unlike our previous examples, digester does not close its output channel, as multiple goroutines are sending on a shared channel. Instead, code in MD5All arranges for the channel to be closed when all the digesters are done:
+先の例と違って、ダイジェスト値計算用ゴルーチンは出力チャンネルを閉じません。その理由は複数のゴルーチンが1つの共通のチャンネルに
+値を送っているからです。代わりに、 `MD5All` 内ですべてのダイジェスト値計算用ゴルーチンが終了したらチャンネルを閉じるようにしています。
 
 ```
-    // Start a fixed number of goroutines to read and digest files.
+    // ファイルの読み込みとダイジェスト値の計算をするゴルーチンを一定数起動
     c := make(chan result)
     var wg sync.WaitGroup
     const numDigesters = 20
@@ -605,9 +611,11 @@ Unlike our previous examples, digester does not close its output channel, as mul
     }()
 ```
 
-We could instead have each digester create and return its own output channel, but then we would need additional goroutines to fan-in the results.
+他の方法として、ダイジェスト計算用ゴルーチンそれぞれが出力用チャンネルを作ってそれを返すことも可能ですが、
+その場合は結果をファンインさせるゴルーチンが追加で必要になります。
 
-The final stage receives all the results from c then checks the error from errc. This check cannot happen any earlier, since before this point, walkFiles may block sending values downstream:
+第3段階では `c` から結果をすべて受け取り、そのあと `errc` 内のエラーを確認します。
+この確認は `c` の結果を受け取った後でなければいけません。なぜならこれより前だと、 `walkFiles` が下流に値を送るのをブロックしてしまうからです。
 
 ```
     m := make(map[string][md5.Size]byte)
@@ -617,7 +625,7 @@ The final stage receives all the results from c then checks the error from errc.
         }
         m[r.path] = r.sum
     }
-    // Check whether the Walk failed.
+    // Walkが失敗したかを確認
     if err := <-errc; err != nil {
         return nil, err
     }
@@ -625,20 +633,26 @@ The final stage receives all the results from c then checks the error from errc.
 }
 ```
 
-## Conclusion
+## 結論
 
-This article has presented techniques for constructing streaming data pipelines in Go. Dealing with failures in such pipelines is tricky, since each stage in the pipeline may block attempting to send values downstream, and the downstream stages may no longer care about the incoming data. We showed how closing a channel can broadcast a "done" signal to all the goroutines started by a pipeline and defined guidelines for constructing pipelines correctly.
+この記事ではGoでストリーミングデータパイプラインを構築するテクニックを紹介しました。
+このようなパイプラインでエラーを扱う場合、各段階においてパイプラインが下流に値を送信するのをブロックしないように、
+そして下流の段階では入力データについて心配する必要がなくなるように、注意しなければいけません。
+本記事の例では、 `"done"` シグナルをパイプラインによって起動されたすべてのゴルーチンに配信しする方法をお見せし、
+またパイプラインを正しく構築するガイドラインを定義しました。
 
-Further reading:
+より深く理解したい人には次の記事をおすすめします。
 
-* [Go Concurrency Patterns](http://talks.golang.org/2012/concurrency.slide#1) ([video](https://www.youtube.com/watch?v=f6kdp27TYZs)) presents the basics of Go's concurrency primitives and several ways to apply them.
-* [Advanced Go Concurrency Patterns](http://blog.golang.org/advanced-go-concurrency-patterns) ([video](http://www.youtube.com/watch?v=QDDwwePbDtw)) covers more complex uses of Go's primitives, especially select.
-* Douglas McIlroy's paper [Squinting at Power Series](http://swtch.com/~rsc/thread/squint.pdf) shows how Go-like concurrency provides elegant support for complex calculations.
+* [Go Concurrency Patterns](http://talks.golang.org/2012/concurrency.slide#1) ([動画](https://www.youtube.com/watch?v=f6kdp27TYZs)) ではGoにおける並行プログラミングの基礎とその適用方法をいくつか紹介しています。
+* [Advanced Go Concurrency Patterns](http://blog.golang.org/advanced-go-concurrency-patterns) ([動画](http://www.youtube.com/watch?v=QDDwwePbDtw)) ではより複雑なGoの機能、特にselectについて触れています。
+* Douglas McIlroy の論文 [Squinting at Power Series](http://swtch.com/~rsc/thread/squint.pdf) では、
+Goのような並行性がどのように複雑な計算を華麗にサポートするかを説明しています。
 
 By Sameer Ajmani
 
 ## あわせて読みたい
 * [Go Concurrency Patterns: Context](https://blog.golang.org/context)
+  * [Goの並行パターン：コンテキスト (Go Concurrency Pattern: Context)](../context/)
 * [Introducing the Go Race Detector](https://blog.golang.org/race-detector)
 * [Advanced Go Concurrency Patterns](https://blog.golang.org/advanced-go-concurrency-patterns)
 * [Concurrency is not parallelism](https://blog.golang.org/concurrency-is-not-parallelism)
