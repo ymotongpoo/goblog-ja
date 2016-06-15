@@ -28,7 +28,7 @@ BCP 47 で定義されている言語タグと、それらが表す言語や方�
 |nl     |オランダ語    |
 |nl-BE  |フラマン語    |
 |es-419 |ラテンアメリカスペイン語|
-|az, az-Latn |ともにアルファベットで書かれたアゼルバイジャン語|
+|az, az-Latn |ともにラテン文字で書かれたアゼルバイジャン語|
 |az-Arab |アラビア文字で書かれたアゼルバイジャン語|
 
 言語タグは一般的に言語コード（上記での“en”, “cmn”, “zh”, “nl”, “az”）が来た後に付加的な文字に関する副タグ（“-Arab”）や
@@ -43,26 +43,39 @@ BCP 47 で定義されている言語タグと、それらが表す言語や方�
 取得するために使われます。これらの処理はまた別の対応を必要とします。たとえば、ポルトガル語には決まった並び順がないため、
 並び順を処理するパッケージはデフォルトのもの、すなわち「ルート」の言語の並び順にフォールバックすることになるでしょう。
 
-## The Messy Nature of Matching Languages
-Handling language tags is tricky. This is partly because the boundaries of human languages are not well defined and partly because of the legacy of evolving language tag standards. In this section we will show some of the messy aspects of handling language tags.
+## 言語の対応に関する厄介な性質
+言語タグを扱うには注意が必要です。その理由は、自然言語の境界があいまいであること、言語タグの標準の発展の歴史によるもの、などが挙げられます。
+この節では言語タグを扱う際の厄介な側面をいくつかご紹介します。
 
-Tags with different language codes can indicate the same language
 
-For historical and political reasons, many language codes have changed over time, leaving languages with an older legacy code as well as a new one. But even two current codes may refer to the same language. For example, the official language code for Mandarin is “cmn”, but “zh” is by far the most commonly used designator for this language. The code “zh” is officially reserved for a so called macro language, identifying the group of Chinese languages. Tags for macro languages are often used interchangeably with the most-spoken language in the group.
+### 異なる言語コードのタグが同じ言語を表している
 
-Matching language code alone is not sufficient
+歴史的かつ政治的な理由で、多くの言語コードは時とともに変遷していて、古い言語コードと新しい言語コードが共存していました。
+しかし、古いものも新しいものも同じ言語を参照しています。たとえば、標準中国語を表す公式な言語コードは “cmn” ですが、 “zh” がずっと
+広く使われています。 “zh” は公式にはいわゆるマクロ言語として中国語全般を表すために予約されています。
+マクロ言語用の言語タグは、しばしばその言語群の中でもっとも良く話されている言語のコードとして使われます。
 
-Azerbaijani (“az”), for example, is written in different scripts depending on the country in which it is spoken: "az-Latn" for Latin (the default script), "az-Arab" for Arabic, and “az-Cyrl” for Cyrillic. If you replace "az-Arab" with just "az", the result will be in Latin script and may not be understandable to a user who only knows the Arabic form.
+### 言語コードの対応だけでは不十分
 
-Also different regions may imply different scripts. For example: “zh-TW” and “zh-SG” respectively imply the use of Traditional and Simplified Han. As another example, “sr” (Serbian) defaults to Cyrillic script, but “sr-RU” (Serbian as written in Russia) implies the Latin script! A similar thing can be said for Kyrgyz and other languages.
+たとえばアゼルバイジャン語（“az”）は国によって異なる文字で書かれています。"az-Latn" はラテン文字、"az-Arab" はアラビア文字、
+“az-Cyrl” はキリル文字です。もし “az-Arab” を単純に “az” に置き換えてしまうと、結果としてラテン文字が表示されて、
+アラビア文字で書かれたアゼルバイジャン語しか理解できない人には意味のないものになってしまうでしょう。
 
-If you ignore subtags, you might as well present Greek to the user.
+異なる地域であることも異なる文字が使われる可能性を示唆します。たとえば “zh-TW” と “zh-SG” はそれぞれ繁体字中国語、
+簡体字中国語であることを示しています。他の例としては “sr” （セルビア語）はデフォルトではキリル文字ですが、
+“sr-RU” （ロシアで書かれるセルビア語）はラテン文字なのです！似た例はキルギスや他の言語でも見られます。
 
-The best match might be a language not listed by the user
+副タグを無視すると、ユーザーにとって意味の分からないものが表示されるかもしれません。
 
-The most common written form of Norwegian (“nb”) looks an awful lot like Danish. If Norwegian is not available, Danish may be a good second choice. Similarly, a user requesting Swiss German (“gsw”) will likely be happy to be presented German (“de”), though the converse is far from true. A user requesting Uygur may be happier to fall back to Chinese than to English. Other examples abound. If a user-requested language is not supported, falling back to English is often not the best thing to do.
+### ユーザーが選択していない言語が最適な場合もある
 
-The choice of language decides more than translation
+もっとも普及したノルウェー語（“nb”）は、デンマーク語と見分けが付きません。もしノルウェー語が選択できないのであれば、
+デンマーク語が次点として選ばれるべきでしょう。同様に、スイスのドイツ語（“gsw”）を選択したユーザーに
+ドイツ語（“de”）が表示されても問題無いでしょう。しかし、その逆はまったく当てはまりません。
+ウイグル語を選択したユーザーに対しては英語よりも中国語にフォールバックさせたほうが良いでしょう。
+ユーザーが選択した言語がサポートされていない場合に、必ずしも英語にフォールバックすることが最適ではないのです。
+
+### 翻訳よりも言語の選択の方が重要
 
 Suppose a user asks for Danish, with German as a second choice. If an application chooses German, it must not only use German translations but also use German (not Danish) collation. Otherwise, for example, a list of animals might sort “Bär” before “Äffin”.
 
