@@ -92,8 +92,8 @@ BCP 47 で定義されている言語タグと、それらが表す言語や方�
 [golang.org/x/text](http://golang.org/x/text) 内のパッケージでは、この方言に対しての、照合や表示といった、特別なサポートはありません。
 そのような状況で採るべき正しい行動は、もっとも近い親方言を対応させることです。言語は階層的な関係にあり、特定の言語には、
 より一般的な親の方言があります。たとえば、“en-GB-oxendict” の親は “en-GB” であり、その親は “en” で、さらにその親は未定義の言語を表す
-“und” となります。これはルート言語としても知られています。照合においては、ポルトガル語には特定の並び順がないため、照合用パッケージは
-ルート言語の並び順を選択するでしょう。表示用パッケージでアンゴラのポルトガル語に最も近い親は、ヨーロッパポルトガル語（“pt-PT”）で、
+“und” となります。これはルート言語としても知られています。照合においては、ポルトガル語には特定の並び順がないため、collateパッケージは
+ルート言語の並び順を選択するでしょう。displayパッケージでアンゴラのポルトガル語に最も近い親は、ヨーロッパポルトガル語（“pt-PT”）で、
 よりわかりやす “pt” ではありません。こちらはブラジルのポルトガル語を表します。
 
 一般的に、親子関係は簡単ではありません。もう少し例を挙げましょう。 “es-CL” の親は “es-419” で、 “zh-TW” の親は “zh-Hant”、その親は “und” です。
@@ -141,27 +141,43 @@ func main() {
 
 ## 言語タグを作成する
 
-The simplest way to create a language.Tag from a user-given language code string is with language.Make. It extracts meaningful information even from malformed input. For example, “en-USD” will result in “en” even though USD is not a valid subtag.
+ユーザーが選択した言語コードの文字列から `language.Tag` を生成するもっとも単純な方法は `language.Make` を使うことです。
+これを使うと、不正な形式の入力からであっても意味のある情報を抽出することができます。たとえば “en-USD” はたとえ `USD` が不正な副タグ
+であっても、“en”の形に直してくれます。 
 
-Make doesn’t return an error. It is common practice to use the default language if an error occurs anyway so this makes it more convenient. Use Parse to handle any error manually.
+`language.Make` はエラーを返しません。エラーを返したとしてもデフォルト言語を使うのが普通なので、エラーを返さないというのは
+より便利な形と言えます。自分でエラーを扱うのであれば `Parse` を使いましょう。
 
-The HTTP Accept-Language header is often used to pass a user’s desired languages. The ParseAcceptLanguage function parses it into a slice of language tags, ordered by preference.
+HTTPの `Accept-Language` ヘッダはしばしばユーザーが望む言語を渡す方法として使われます。 `ParseAcceptLanguage` 関数は
+そのヘッダをパースして言語タグのスライスへ変換し、望ましい順番に並べます。
 
-By default, the language package does not canonicalize tags. For example, it does not follow the BCP 47 recommendation of eliminating scripts if it is the common choice in the “overwhelming majority”. It similarly ignores CLDR recommendations: “cmn” is not replaced by “zh” and “zh-Hant-HK” is not simplified to “zh-HK”. Canonicalizing tags may throw away useful information about user intent. Canonicalization is handled in the Matcher instead. A full array of canonicalization options are available if the programmer still desires to do so.
+デフォルトでは、languageパッケージはタグを正規化しません。たとえば、言語タグが「圧倒的大多数」によく使われているのであれば、
+BCP 47が推奨する形に言語タグの文字列を消したりしません。同様に、CLDRの推奨する形も無視します。
+つまり “cmn” は “zh” に置換されませんし、“zh-Hant-HK” は “zh-HK” に簡約化されません。言語タグを正規化してしまうと、
+ユーザーの意図などの役に立つ情報まで捨ててしまいかねません。かわりに正規化は `Matcher` で扱われます。
+プログラマが望めば、正規化に関するオプションもすべて利用できます。
 
-## Matching User-Preferred Languages to Supported Languages
+## ユーザーが望む言語をサポートしている言語に対応させる
 
-A Matcher matches user-preferred languages to supported languages. Users are strongly advised to use it if they don’t want to deal with all the intricacies of matching languages.
+`Matcher` はユーザーが望む言語をサポートしている言語に対応させます。ユーザーは言語の対応に関するすべてのややこしい事柄に
+関わりたくないのであれば、 `Matcher` が選んだ言語を利用すること強く推奨します。
 
-The Match method may pass through user settings (from BCP 47 extensions) from the preferred tags to the selected supported tag. It is therefore important that the tag returned by Match is used to obtain language-specific resources. For example, “de-u-co-phonebk” requests phone-book ordering for German. The extension is ignored for matching, but is used by the collate package to select the respective sorting order variant.
+`Match` メソッドはユーザーが望む言語タグを（BCP 47の拡張からなる）ユーザー設定を経由してサポートされている言語タグへと渡します。
+それゆえ、`Match` から返されたタグを言語特有のリソースを取得するために使うことが重要です。たとえば “de-u-co-phonebk” は
+ドイツ語での電話帳の並び順を要求します。この拡張は対応時には無視されますが、collateパッケージがそれぞれの並び順の変数を選択するときに使われます。
 
-A Matcher is initialized with the languages supported by an application, which are usually the languages for which there are translations. This set is typically fixed, allowing a matcher to be created at startup. Matcher is optimized to improve the performance of Match at the expense of initialization cost.
+`Matcher` はアプリケーションがサポートする言語で初期化されます。これらの言語は通常翻訳先となる言語です。
+この言語のセットは通常は固定されていて、これによって `Matcher` がアプリケーション起動時に作成できます。
+`Matcher` は `Match` の初期化コストを下げパフォーマンスを改善するために最適化されています。
 
-The language package provides a predefined set of the most commonly used language tags that can be used for defining the supported set. Users generally don’t have to worry about the exact tags to pick for supported languages. For example, AmericanEnglish (“en-US”) may be used interchangeably with the more common English (“en”), which defaults to American. It is all the same for the Matcher. An application may even add both, allowing for more specific American slang for “en-US”.
+languageパッケージはもっともよく使用される言語タグの事前定義済みセットを提供しています。これはアプリケーションがサポートする言語セットとして
+使うことが出来ます。ユーザーは一般的に、サポートされる言語にピッタリと合致するタグを選ばなければいけないという心配をしなくてすみます。
+たとえば、アメリカ英語（“en-US”）は、デフォルトでアメリカ英語となる、より一般的な英語（“en”）と相互互換的に使うことが出来ます。
+`Matcher` にも同様のことが当てはまります。アプリケーション側では両方の言語に対応してもよく、特有のアメリカのスラングを “en-US” 用に追加することも出来ます。
 
-## Matching Example
+## マッチングの例
 
-Consider the following Matcher and lists of supported languages:
+次の `Matcher` と、サポートする言語のリストを考えてみましょう。
 
 ```
 var supported = []language.Tag{
@@ -179,21 +195,30 @@ var supported = []language.Tag{
 var matcher = language.NewMatcher(supported)
 ```
 
-Let's look at the matches against this list of supported languages for various user preferences.
+様々なユーザー設定とそれに対応するサポート言語のリストの対応を見てみましょう。
 
-For a user preference of "he" (Hebrew), the best match is "en-US" (American English). There is no good match, so the matcher uses the fallback language (the first in the supported list).
+ユーザー設定で "he"（ヘブライ語）を選択した場合、最適な対応は "en-US"（アメリカ英語）です。
+良い対応がないため、matcherはフォールバック先の言語（サポート言語のリストの先頭）を使用します。
 
-For a user preference of "hr" (Croatian), the best match is "sr-Latn" (Serbian with Latin script), because, once they are written in the same script, Serbian and Croatian are mutually intelligible.
+ユーザー設定で "hr"（クロアチア語）を選択した場合、最適な対応は "sr-Latn"（ラテン文字で書かれたセルビア語）です。
+理由は、同じ文字で書かれている場合、セルビア語とクロアチア語はお互い理解できる言語だからです。
 
-For a user preference of "ru, mo" (Russian, then Moldavian), the best match is "ro" (Romanian), because Moldavian is now canonically classified as "ro-MD" (Romanian in Moldova).
+ユーザー設定で "ru, mo"（ロシア語、次点でモルダビア語）を選択した場合、最適な対応は "ro"（ルーマニア語）です。
+理由はモルダビア語は正規化すると "ro-MD"（モルドバでのルーマニア語）に分類されるからです。
 
-For a user preference of "zh-TW" (Mandarin in Taiwan), the best match is "zh-Hant" (Mandarin written in Traditional Chinese), not "zh-Hans" (Mandarin written in Simplified Chinese).
+ユーザー設定で "zh-TW"（台湾での標準中国語）を選択した場合、最適な対応は"zh-Hans"（簡体字で書かれた標準中国語）ではなく、
+"zh-Hant"（繁体字で書かれた標準中国語）です。
 
-For a user preference of "af, ar" (Afrikaans, then Arabic), the best match is "nl" (Dutch). Neither preference is supported directly, but Dutch is a significantly closer match to Afrikaans than the fallback language English is to either.
+ユーザー設定で　"af, ar"（アフリカーンス語、次点でアラビア語）を選択した場合、最適な対応は "nl"（オランダ語）です。
+どちらの設定も直接はサポートされていませんが、オランダ語は、フォールバック言語の英語の設定された言語に対する近さよりも、
+アフリカーンス語にずっと近く対応しています。
 
-For a user preference of "pt-AO, id" (Angolan Portuguese, then Indonesian), the best match is "pt-PT" (European Portuguese), not "pt" (Brazilian Portuguese).
+ユーザー設定で "pt-AO, id"（アンゴラのポルトガル語、次点でインドネシア語）を選択した場合、最適な対応は "pt-PT"（ヨーロッパのポルトガル語）
+であり、 "pt"（ブラジルのポルトガル語）ではありません。
 
-For a user preference of "gsw-u-co-phonebk" (Swiss German with phone-book collation order), the best match is "de-u-co-phonebk" (German with phone-book collation order). German is the best match for Swiss German in the server's language list, and the option for phone-book collation order has been carried over.
+ユーザー設定で "gsw-u-co-phonebk"（スイスのドイツ語で、照合は電話帳の順を使用）を選択した場合、最適な対応は
+"de-u-co-phonebk（ドイツ語で、照合は電話帳の順を使用）となります。ドイツ語はサーバーの言語リスト内ではスイスのドイツ語に最適な対応であり、
+電話帳順の照合というオプションは持ち越されます。
 
 ## Confidence Scores
 
