@@ -77,21 +77,34 @@ BCP 47 で定義されている言語タグと、それらが表す言語や方�
 
 ### 翻訳よりも言語の選択の方が重要
 
-Suppose a user asks for Danish, with German as a second choice. If an application chooses German, it must not only use German translations but also use German (not Danish) collation. Otherwise, for example, a list of animals might sort “Bär” before “Äffin”.
+あるユーザーがデンマーク語を第1の選択肢に、ドイツ語を第2の選択肢にしたとしましょう。
+もしアプリケーションがドイツ語を選択するならば、コンテンツをドイツ語に翻訳するだけではなく、照合処理も（デンマーク語ではなく）ドイツ語の
+ルールを使わなければいけません。そうしないと、たとえば動物のリストを並べるときに “Bär” （日：クマ）が “Äffin” （日：メスザル）よりも
+前に来てしまいます。
 
-Selecting a supported language given the user’s preferred languages is like a handshaking algorithm: first you determine which protocol to communicate in (the language) and then you stick with this protocol for all communication for the duration of a session.
+ユーザーが選択した言語の中からサポートする言語を選択するというのは、ハンドシェイクアルゴリズムに似ています。
+まずあなたがやり取りするためのプロトコル（言語）を決定し、そのあとはセッションが続く間はすべてのコミュニケーションを
+そのプロトコルで行うことに終始します。
 
-Using a “parent” of a language as fallback is non-trivial
+### フォールバックに「親」の言語を使うのは簡単なことではない
 
-Suppose your application supports Angolan Portuguese (“pt-AO”). Packages in golang.org/x/text, like collation and display, may not have specific support for this dialect. The correct course of action in such cases is to match the closest parent dialect. Languages are arranged in a hierarchy, with each specific language having a more general parent. For example, the parent of “en-GB-oxendict” is “en-GB”, whose parent is “en”, whose parent is the undefined language “und”, also known as the root language. In the case of collation, there is no specific collation order for Portugese, so the collate package will select the sorting order of the root language. The closest parent to Angolan Portuguese supported by the display package is European Portuguese (“pt-PT”) and not the more obvious “pt”, which implies Brazilian.
+あなたのアプリケーションがアンゴラのポルトガル語（“pt-AO”）をサポートしているとしましょう。
+[golang.org/x/text](http://golang.org/x/text) 内のパッケージでは、この方言に対しての、照合や表示といった、特別なサポートはありません。
+そのような状況で採るべき正しい行動は、もっとも近い親方言を対応させることです。言語は階層的な関係にあり、特定の言語には、
+より一般的な親の方言があります。たとえば、“en-GB-oxendict” の親は “en-GB” であり、その親は “en” で、さらにその親は未定義の言語を表す
+“und” となります。これはルート言語としても知られています。照合においては、ポルトガル語には特定の並び順がないため、照合用パッケージは
+ルート言語の並び順を選択するでしょう。表示用パッケージでアンゴラのポルトガル語に最も近い親は、ヨーロッパポルトガル語（“pt-PT”）で、
+よりわかりやす “pt” ではありません。こちらはブラジルのポルトガル語を表します。
 
-In general, parent relationships are non-trivial. To give a few more examples, the parent of “es-CL” is “es-419”, the parent of “zh-TW” is “zh-Hant”, and the parent of “zh-Hant” is “und”. If you compute the parent by simply removing subtags, you may select a “dialect” that is incomprehensible to the user.
+一般的に、親子関係は簡単ではありません。もう少し例を挙げましょう。 “es-CL” の親は “es-419” で、 “zh-TW” の親は “zh-Hant”、その親は “und” です。
+祖語を選択しようと単純に副タグを取っただけの処理をすると、ユーザーが理解できない「方言」を選択してしまうかもしれません。
 
-## Language Matching in Go
+## Goでの言語のマッチング
 
-The Go package golang.org/x/text/language implements the BCP 47 standard for language tags and adds support for deciding which language to use based on data published in the Unicode Common Locale Data Repository (CLDR).
+Goのパッケージ [golang.org/x/text/language](http://golang.org/x/text/language) は言語タグに関するBCP 47の標準を実装し、
+共通ロケールデータレポジトリ（CLDR）にあるデータに基づいて、どの言語を使うべきかを判断するサポートを追加しています。
 
-Here is a sample program, explained below, matching a user's language preferences against an application's supported languages:
+ユーザーの選択した言語とアプリケーションがサポートしている言語との対応をするサンプルプログラムを示します。
 
 ```
 package main
@@ -126,7 +139,7 @@ func main() {
 }
 ```
 
-## Creating Language Tags
+## 言語タグを作成する
 
 The simplest way to create a language.Tag from a user-given language code string is with language.Make. It extracts meaningful information even from malformed input. For example, “en-USD” will result in “en” even though USD is not a valid subtag.
 
