@@ -1,6 +1,6 @@
 +++
 date = "2016-02-09T21:55:32+09:00"
-draft = true
+draft = false
 title = "matchlang"
 
 +++
@@ -272,8 +272,11 @@ Russian              (русский)
 
 ## 結論
 
-At first glance, language tags look like nicely structured data, but because they describe human languages, the structure of relationships between language tags is actually quite complex. It is often tempting, especially for English-speaking programmers, to write ad-hoc language matching using nothing other than string manipulation of the language tags. As described above, this can produce awful results.
+ぱっと見では、言語タグはきちんとした構造化データに見えますが、自然言語を表現するものなので、言語タグ間の関係を表す構造は実際には非常に複雑です。
+特に英語話者のプログラマは、しばしば言語タグの文字列を操作した、独自のアドホックな言語マッチングを書きたい衝動に駆られます。
+この文章で述べたように、その結果はひどいものになりえます。
 
-Go's golang.org/x/text/language package solves this complex problem while still presenting a simple, easy-to-use API. Enjoy.
+Goの [golang.org/x/text/language](http://golang.org/x/text/language) パッケージは、この複雑な問題を解決しつつも、
+シンプルで使いやすいAPIを提供しています。このパッケージGoプログラミングを楽しんでください。
 
 By Marcel van Lohuizen
