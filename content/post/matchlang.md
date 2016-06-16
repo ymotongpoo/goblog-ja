@@ -277,6 +277,6 @@ Russian              (русский)
 この文章で述べたように、その結果はひどいものになりえます。
 
 Goの [golang.org/x/text/language](http://golang.org/x/text/language) パッケージは、この複雑な問題を解決しつつも、
-シンプルで使いやすいAPIを提供しています。このパッケージGoプログラミングを楽しんでください。
+シンプルで使いやすいAPIを提供しています。このパッケージでGoプログラミングを楽しんでください。
 
 By Marcel van Lohuizen
