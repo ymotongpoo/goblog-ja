@@ -1,7 +1,7 @@
 +++
 date = "2016-02-09T21:55:32+09:00"
 draft = false
-title = "matchlang"
+title = "Goにおける言語とロケールのマッチング (Language and Locale Matching in Go)"
 
 +++
 
