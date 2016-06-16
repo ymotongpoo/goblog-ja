@@ -220,17 +220,24 @@ var matcher = language.NewMatcher(supported)
 "de-u-co-phonebk（ドイツ語で、照合は電話帳の順を使用）となります。ドイツ語はサーバーの言語リスト内ではスイスのドイツ語に最適な対応であり、
 電話帳順の照合というオプションは持ち越されます。
 
-## Confidence Scores
+## 信頼スコア
 
-Go uses coarse-grained confidence scoring with rule-based elimination. A match is classified as Exact, High (not exact, but no known ambiguity), Low (probably the correct match, but maybe not), or No. In case of multiple matches, there is a set of tie-breaking rules that are executed in order. The first match is returned in the case of multiple equal matches. These confidence scores may be useful, for example, to reject relatively weak matches. They are also used to score, for example, the most likely region or script from a language tag.
+Goではルールベースの消去法を使った粗い信頼スコアを使っています。
+言語の対応は Exact、High（Exactではないが明確な曖昧さはない）、Low（おおよそ対応しているかもしれないし、していないかもしれない）、Noに
+分類されます。複数の言語が同等に対応した場合には、タイブレークのルールが順番に実行されます。複数の言語が同等に対応した場合には、
+最初の言語が返されます。これらの信頼スコアは、たとえば比較的弱い対応を拒否するときに役に立ちます。
+ほかにも、たとえば言語タグから最適な地域や文字のスコアを付けるときにも使われます。
 
-Implementations in other languages often use more fine-grained, variable-scale scoring. We found that using coarse-grained scoring in the Go implementation ended up simpler to implement, more maintainable, and faster, meaning that we could handle more rules.
+他のプログラミング言語での実装では、より細やかな、変数スケールのスコアリングをしています。
+私たちは、Goでの実装は粗いスコアリングにすることで、より簡潔な実装で、よりメンテナンスしやすく、より速くなることがわかり、
+それにより、より多くのルールを扱えることとなりました。
 
-## Displaying Supported Languages
+## サポートされた言語を表示する
 
-The golang.org/x/text/language/display package allows naming language tags in many languages. It also contains a “Self” namer for displaying a tag in its own language.
+[golang.org/x/text/language/display](http://golang.org/x/text/language/display) パッケージは言語タグを
+たくさんの言語で名前をつけることが出来ます。このパッケージには「自分自身」のタグ名を自分の言語で表示できるようにもなっています。
 
-For example:
+たとえば
 
 ```
     var supported = []language.Tag{
@@ -249,7 +256,7 @@ For example:
     }
 ```
 
-prints
+というコードは次のように表示します。
 
 ```
 English              (English)
@@ -261,7 +268,7 @@ Traditional Chinese  (繁體中文)
 Russian              (русский)
 ```
 
-In the second column, note the differences in capitalization, reflecting the rules of the respective language.
+2番めの列で、大文字化に違いがあることに注目してください。個々の言語のルールを反映しています。
 
 ## 結論
 
