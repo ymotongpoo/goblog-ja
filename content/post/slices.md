@@ -11,45 +11,56 @@ tags = ["array", "slice", "string", "copy", "append"]
 ## はじめに
 
 手続き型プログラミング言語において共通した機能のひとつに配列という概念があります。配列は単純に見えて、言語に追加する際には
-答えなければならない多くの疑問にこたえなければいけません。たとえば次のようなものです。
+答えなければならない多くの設問にこたえなければいけません。たとえば次のようなものです。
 
 * 固定長なのか、可変長なのか
 * 長さは型に含めるのか
 * 多次元配列はどのように表現するか
 * 空の配列が何を意味するか
 
-The answers to these questions affect whether arrays are just a feature of the language or a core part of its design.
+これらの設問に対する回答が、配列が単に言語の一機能になるか、それとも言語設計の中心になるかをわけます。
 
-In the early development of Go, it took about a year to decide the answers to these questions before the design felt right. The key step was the introduction of slices, which built on fixed-size arrays to give a flexible, extensible data structure. To this day, however, programmers new to Go often stumble over the way slices work, perhaps because experience from other languages has colored their thinking.
+Goの開発の初期段階で、言語設計がしっくりくるまで、これらの設問に対する答えを決めるのに1年かかりました。　
+鍵となったのはスライスの導入でした。スライスによって、固定長の配列に柔軟性や拡張性をもったデータ構造を与えました。
+しかしながら、今日まで、Goを使い始めたばかりのプログラマはスライスの動作の理解にしばしばつまづいています。
+おそらくそれは他の言語での経験がスライスに対する考え方に影響しているからでしょう。
 
-In this post we'll attempt to clear up the confusion. We'll do so by building up the pieces to explain how the append built-in function works, and why it works the way it does.
+この記事では、その混乱を解決しようと思います。そのために、ひとつひとつ部品を積み重ねて、組み込み関数の `append` がどのように動作するか、
+そしてなぜそのように動作するのかを説明します。
 
-## Arrays
+## 配列
 
-Arrays are an important building block in Go, but like the foundation of a building they are often hidden below more visible components. We must talk about them briefly before we move on to the more interesting, powerful, and prominent idea of slices.
+Goにおいて、配列は重要な要素ですが、工事における基礎のように、配列はより見えやすい構成要素の下に隠されています。
+より面白くて、強力で、輝くアイデアであるスライスの話をする前に、まずは簡単に配列の説明をしましょう。
 
-Arrays are not often seen in Go programs because the size of an array is part of its type, which limits its expressive power.
+配列はGoのプログラム内にはあまり見られません。なぜなら配列の大きさは型の一部で、それによって表現力が制限されるからです。
 
-The declaration
+次の宣言では
 
 ```
 var buffer [256]byte
 ```
 
-declares the variable buffer, which holds 256 bytes. The type of buffer includes its size, [256]byte. An array with 512 bytes would be of the distinct type [512]byte.
+は変数バッファを宣言しています。このバッファは256バイトを保持します。 `buffer` は型その大きさをを型情報に含んでいて
+`[256]byte` となっています。512バイトの配列は、その専用の型である `[512]byte` 型となります。
 
-The data associated with an array is just that: an array of elements. Schematically, our buffer looks like this in memory,
+配列に紐付いたデータは、たった一つ、配列の要素だけです。構文の観点でいえば、さきほどの `buffer` はメモリ上では次のようになっています。
 
 ```
 buffer: byte byte byte ... 256 times ... byte byte byte
 ```
 
-That is, the variable holds 256 bytes of data and nothing else. We can access its elements with the familiar indexing syntax, `buffer[0]`, `buffer[1]`, and so on through `buffer[255]`. (The index range 0 through 255 covers 256 elements.) Attempting to index buffer with a value outside this range will crash the program.
+つまり、変数は256バイトのデータを保持していて、ただそれだけです。私たちは各要素によく知られたインデックスの構文でアクセスできます。
+`buffer[0]` 、 `buffer[1]` から始まって `buffer[255]` までです。（0から255までインデックスの範囲で256の要素をカバーしています）
+この範囲の外側にある値のインデックスにアクセスしようとすると、プログラムがクラッシュします。
 
-There is a built-in function called len that returns the number of elements of an array or slice and also of a few other data types. For arrays, it's obvious what len returns. In our example, len(buffer) returns the fixed value 256.
+`len` という名前の組み込み関数があり、これは配列、スライス、また他のいくつかのデータ型の要素数を返します。
+配列においては、 `len` が何を返すかは明らかです。私たちの例では `len(buffer)` は固定値の `256` を返します。
 
-Arrays have their place—they are a good representation of a transformation matrix for instance—but their most common purpose in Go is to hold storage for a slice.
+配列には使われるべき場所があります。インスタンスの変換行列として良い表現になっています。しかし、Goで配列がもっともよく使われるのは、
+スライス内部で保存領域を確保する目的で使われるときです。
 
+## スライス: スライスのヘッダー
 ## Slices: The slice header
 
 Slices are where the action is, but to use them well one must understand exactly what they are and what they do.
