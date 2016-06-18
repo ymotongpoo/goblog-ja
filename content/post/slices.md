@@ -319,9 +319,9 @@ func main() {
 （演習： `ToUpper` メソッドをポインターレシーバーに変更して、動作が変わるか確認しましょう）
 （応用演習： `ToUpper` メソッドでASCII文字だけではなくUnicode文字を扱えるようにしてみましょう）
 
-## Capacity
+## 容量
 
-Look at the following function that extends its argument slice of ints by one element:
+次の、intのスライスの引数を1要素だけ拡大する関数を見てみましょう。
 
 ```
 func Extend(slice []int, element int) []int {
@@ -332,7 +332,7 @@ func Extend(slice []int, element int) []int {
 }
 ```
 
-(Why does it need to return the modified slice?) Now run it:
+（なぜ修正したスライスを返す必要があるのでしょうか）実行してみます。
 
 ```
 func main() {
@@ -367,9 +367,10 @@ main.main()
 	/tmp/sandbox346230702/main.go:27 +0x220
 ```
 
-See how the slice grows until... it doesn't.
+スライスの容量が20まで増えているのがおわかりに・・・増えていません。
 
-It's time to talk about the third component of the slice header: its capacity. Besides the array pointer and length, the slice header also stores its capacity:
+スライスヘッダーの3つ目の要素についてお話するときがやってきました。スライスの容量です。
+スライスヘッダーには、配列へのポインターと長さに加えて、スライスの容量も保持しています。
 
 ```
 type sliceHeader struct {
@@ -379,15 +380,17 @@ type sliceHeader struct {
 }
 ```
 
-The Capacity field records how much space the underlying array actually has; it is the maximum value the Length can reach. Trying to grow the slice beyond its capacity will step beyond the limits of the array and will trigger a panic.
+`Capacity` フィールドは内部で持っている配列に実際どれくらいの空き容量があるかを記録しています。
+この値は `Length` が取りうる最大です。スライスをその容量を超えて拡大させることは配列の制限を超えることであり、
+パニックを引き起こす原因となります。
 
-After our example slice is created by
+先の例で `slice` を作成したあと
 
 ```
 slice := iBuffer[0:0]
 ```
 
-its header looks like this:
+ヘッダーは次のようになっています。
 
 ```
 slice := sliceHeader{
@@ -397,7 +400,8 @@ slice := sliceHeader{
 }
 ```
 
-The Capacity field is equal to the length of the underlying array, minus the index in the array of the first element of the slice (zero in this case). If you want to inquire what the capacity is for a slice, use the built-in function cap:
+`Capacity` フィールドは、内部で持っている配列の長さからスライスの最初の要素の配列におけるインデックス（この場合は0）を引いたものとなります。
+スライスの容量を知りたければ、組み込み関数の `cap` を使います。
 
 ```
 if cap(slice) == len(slice) {
