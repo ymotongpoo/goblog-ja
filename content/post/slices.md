@@ -61,31 +61,35 @@ buffer: byte byte byte ... 256 times ... byte byte byte
 スライス内部で保存領域を確保する目的で使われるときです。
 
 ## スライス: スライスのヘッダー
-## Slices: The slice header
 
-Slices are where the action is, but to use them well one must understand exactly what they are and what they do.
+スライスでは面白い処理が行われていますが、スライスを上手に使うためには、それがどのような性質を持っていて、どんな振る舞いをするかを
+きちんと理解しなければいけません。
 
-A slice is a data structure describing a contiguous section of an array stored separately from the slice variable itself. A slice is not an array. A slice describes a piece of an array.
+スライスはスライスの変数自身とは別に保存された配列の境界を表現したデータ構造です。スライスは配列の一部を表現しています。
 
-Given our buffer array variable from the previous section, we could create a slice that describes elements 100 through 150 (to be precise, 100 through 149, inclusive) by slicing the array:
+前の説の `buffer` という配列の変数を再利用して、100番目の要素から150番目の要素（正確には含まれる要素は100から149）を持つスライスを、
+配列から切り取る（スライスする）ことで作ることもできるでしょう。
 
 ```
 var slice []byte = buffer[100:150]
 ```
 
-In that snippet we used the full variable declaration to be explicit. The variable slice has type []byte, pronounced "slice of bytes", and is initialized from the array, called buffer, by slicing elements 100 (inclusive) through 150 (exclusive). The more idiomatic syntax would drop the type, which is set by the initializing expression:
+上のスニペットでは、明示的になるように変数宣言を冗長な形で書きました。変数 `slice` は `[]byte` 型で、「バイトのスライス」と呼びます。
+`slice` は `buffer` という名前の配列から、100（含む）から150（除く）の要素を切り取ることで初期化されました。
+よりイディオムに近い構文では、初期化表現で追加される型情報を省略します。
 
 ```
 var slice = buffer[100:150]
 ```
 
-Inside a function we could use the short declaration form,
+関数内では、短い記法を使うこともできます。
 
 ```
 slice := buffer[100:150]
 ```
 
-What exactly is this slice variable? It's not quite the full story, but for now think of a slice as a little data structure with two elements: a length and a pointer to an element of an array. You can think of it as being built like this behind the scenes:
+この `slice` 変数とは一体なんでしょう。すべてを説明するわけではありませんが、とりあえずスライスを長さとポインターという2つの要素を持つ
+小さなデータ構造とみなしてみましょう。するとスライスが作られるときには、その背後で次のようなことが起きていると考えられます。
 
 ```
 type sliceHeader struct {
@@ -99,15 +103,17 @@ slice := sliceHeader{
 }
 ```
 
-Of course, this is just an illustration. Despite what this snippet says that sliceHeader struct is not visible to the programmer, and the type of the element pointer depends on the type of the elements, but this gives the general idea of the mechanics.
+もちろん、これは単なる説明にすぎません。このスニペットが `sliceHeader` 構造体はプログラマに見えないことを説明していて、
+要素のポインタの型が要素の型に依存するものとは言え、このスニペットは一般的な仕組みを説明しています。
 
-So far we've used a slice operation on an array, but we can also slice a slice, like this:
+これまで、配列を切り取る操作をしてきましたが、スライスを切り取ることもできます。次のとおりです。
 
 ```
 slice2 := slice[5:10]
 ```
 
-Just as before, this operation creates a new slice, in this case with elements 5 through 9 (inclusive) of the original slice, which means elements 105 through 109 of the original array. The underlying sliceHeader struct for the slice2 variable looks like this:
+配列から切り取ったときと同様に、この操作では新しいスライスを作成します。この場合は元のスライスの要素5から9（含む）のスライスで、
+これはつまり元の配列の要素105から109を意味します。スライスの変数 `slice2` の中の配列が基にしている `sliceHeader` 構造体は次のようになります。
 
 ```
 slice2 := sliceHeader{
@@ -116,31 +122,35 @@ slice2 := sliceHeader{
 }
 ```
 
-Notice that this header still points to the same underlying array, stored in the buffer variable.
+このヘッダーが依然として `buffer` 変数の中にあるものと同じ配列を参照していることに注意して下さい。
 
-We can also reslice, which is to say slice a slice and store the result back in the original slice structure. After
+再切り取り（再スライス）、つまりスライスを切り取って、その結果を同じスライスに保存することもできます。
 
 ```
 slice = slice[5:10]
 ```
 
-the sliceHeader structure for the slice variable looks just like it did for the slice2 variable. You'll see reslicing used often, for example to truncate a slice. This statement drops the first and last elements of our slice:
+この操作のあとは、 `slice` 変数の `sliceHeader` 構造体は `slice2` 変数のものと同様になります。
+たとえばスライスと切り詰めるときに再切り取りをよく目にします。次の式では `slice` の最初と最後の要素を捨てます。
 
 ```
 slice = slice[1:len(slice)-1]
 ```
 
-[Exercise: Write out what the sliceHeader struct looks like after this assignment.]
+（演習：この代入のあとに `sliceHeader` 構造体がどのようになるかを書いてみてください）
 
-You'll often hear experienced Go programmers talk about the "slice header" because that really is what's stored in a slice variable. For instance, when you call a function that takes a slice as an argument, such as bytes.IndexRune, that header is what gets passed to the function. In this call,
+経験あるGoプログラマがしばしば「スライスヘッダー」について話すのを聞くでしょう。なぜなら、スライスヘッダーは本当にスライス変数内に
+保存されているからです。たとえば、 `bytes.IndexRune` のようなスライスを引数に取る関数を呼び出すとき、そのヘッダーが
+関数に渡される実態です。この関数呼び出しでは
 
 ```
 slashPos := bytes.IndexRune(slice, '/')
 ```
 
-the `slice` argument that is passed to the IndexRune function is, in fact, a "slice header".
+`IndexRune` 関数に渡される `slice` 引数は、実際には「スライスヘッダー」なのです。 
 
-There's one more data item in the slice header, which we talk about below, but first let's see what the existence of the slice header means when you program with slices.
+スライスヘッダー内にはもう一つのデータ要素があり、それは以降で説明しますが、まずはプログラムでスライスを使うときに、
+このスライスヘッダーが存在することが何を意味するのかを理解しましょう。
 
 ## Passing slices to functions
 
