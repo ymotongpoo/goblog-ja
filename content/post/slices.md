@@ -104,7 +104,7 @@ slice := sliceHeader{
 ```
 
 もちろん、これは単なる説明にすぎません。このスニペットが `sliceHeader` 構造体はプログラマに見えないことを説明していて、
-要素のポインタの型が要素の型に依存するものとは言え、このスニペットは一般的な仕組みを説明しています。
+要素のポインターの型が要素の型に依存するものとは言え、このスニペットは一般的な仕組みを説明しています。
 
 これまで、配列を切り取る操作をしてきましたが、スライスを切り取ることもできます。次のとおりです。
 
@@ -152,15 +152,17 @@ slashPos := bytes.IndexRune(slice, '/')
 スライスヘッダー内にはもう一つのデータ要素があり、それは以降で説明しますが、まずはプログラムでスライスを使うときに、
 このスライスヘッダーが存在することが何を意味するのかを理解しましょう。
 
-## Passing slices to functions
+## スライスを関数に渡す
 
-It's important to understand that even though a slice contains a pointer, it is itself a value. Under the covers, it is a struct value holding a pointer and a length. It is not a pointer to a struct.
+スライスがポインターを持っていたとしても、スライスそれ自身は値であることを理解することが重要です。
+一皮めくれば、スライスはポインターと長さを持つ構造体の値です。構造体のポインターではありません。
 
-This matters.
+この事実が大事です。
 
-When we called IndexRune in the previous example, it was passed a copy of the slice header. That behavior has important ramifications.
+先の例で `IndexRune` を呼んだとき、 `IndexRune` にはスライスヘッダーのコピーが渡されました。
+この振る舞いは重要な結果をもたらします。
 
-Consider this simple function:
+次の簡単な関数を考えてみましょう。
 
 ```
 func AddOneToEachElement(slice []byte) {
@@ -170,9 +172,9 @@ func AddOneToEachElement(slice []byte) {
 }
 ```
 
-It does just what its name implies, iterating over the indices of a slice (using a for range loop), incrementing its elements.
+これは関数名が示す通り、スライスの各インデックスを（`for range` ループを使って）繰り返し進めていき、各要素を1増加させています。
 
-Try it:
+試してみましょう。
 
 ```
 func main() {
@@ -186,8 +188,6 @@ func main() {
 }
 ```
 
-(You can edit and re-execute these runnable snippets if you want to explore.)
-
 実行結果は次の通り。
 
 ```
@@ -195,9 +195,11 @@ before [0 1 2 3 4 5 6 7 8 9]
 after [1 2 3 4 5 6 7 8 9 10]
 ```
 
-Even though the slice header is passed by value, the header includes a pointer to elements of an array, so both the original slice header and the copy of the header passed to the function describe the same array. Therefore, when the function returns, the modified elements can be seen through the original slice variable.
+スライスヘッダーは値で渡されたとしても、配列の要素に対するポインターを含んでいるため、元のスライスヘッダーと関数に渡された
+スライスヘッダーのコピーは同じ配列を表しています。それゆえ、関数がreturnするとき、変更された要素は元の `slice` 変数からでも
+確認できるのです。
 
-The argument to the function really is a copy, as this example shows:
+関数に渡された引数は本当にコピーです。次の例で確認できます。
 
 ```
 func SubtractOneFromLength(slice []byte) []byte {
@@ -221,7 +223,11 @@ After:  len(slice) = 50
 After:  len(newSlice) = 49
 ```
 
-Here we see that the contents of a slice argument can be modified by a function, but its header cannot. The length stored in the slice variable is not modified by the call to the function, since the function is passed a copy of the slice header, not the original. Thus if we want to write a function that modifies the header, we must return it as a result parameter, just as we have done here. The slice variable is unchanged but the returned value has the new length, which is then stored in newSlice,
+スライスの引数の中身は関数によって修正可能だけど、そのヘッダーは修正不可能であることを確認しました。
+`slice` 変数に保持されている長さは関数の呼び出しでは変更されません。なぜなら関数にはスライスヘッダーのコピーが渡されていて、
+元のスライスヘッダーが渡されているわけではないからです。したがって、もしヘッダーを変更する関数を書きたいのであれば、
+いま例示したように、それを結果として返さなければいけません。 `slice` 変数は変更されていませんが、返ってきた値は新しい長さになっていて、
+それが `newSlice` に保存されます。
 
 ## Pointers to slices: Method receivers
 
