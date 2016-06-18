@@ -229,9 +229,10 @@ After:  len(newSlice) = 49
 いま例示したように、それを結果として返さなければいけません。 `slice` 変数は変更されていませんが、返ってきた値は新しい長さになっていて、
 それが `newSlice` に保存されます。
 
-## Pointers to slices: Method receivers
+## スライスへのポインター：メソッドレシーバー
 
-Another way to have a function modify the slice header is to pass a pointer to it. Here's a variant of our previous example that does this:
+スライスヘッダーを変更する関数を書く場合、関数にスライスヘッダーのポインターを渡すというのも手です。
+先ほどの例の違うバージョンを書いてみます。
 
 ```
 func PtrSubtractOneFromLength(slicePtr *[]byte) {
@@ -253,9 +254,10 @@ Before: len(slice) = 50
 After:  len(slice) = 49
 ```
 
-It seems clumsy in that example, especially dealing with the extra level of indirection (a temporary variable helps), but there is one common case where you see pointers to slices. It is idiomatic to use a pointer receiver for a method that modifies a slice.
+この例では、特に間接的な代入をしているところ（一時変数を使っています）がぎこちなく見えますが、ポインターへのスライスではよくある例です。
+スライスを変更するメソッドにポインターレシーバーを使うイディオムがあります。
 
-Let's say we wanted to have a method on a slice that truncates it at the final slash. We could write it like this:
+スライスに最後のスラッシュ以降を捨てるメソッドを持たせたいとしましょう。そのメソッドは次のように書けます。
 
 ```
 type path []byte
@@ -268,13 +270,13 @@ func (p *path) TruncateAtFinalSlash() {
 }
 
 func main() {
-    pathName := path("/usr/bin/tso") // Conversion from string to path.
+    pathName := path("/usr/bin/tso") // string型からpath型への変換
     pathName.TruncateAtFinalSlash()
     fmt.Printf("%s\n", pathName)
 }
 ```
 
-If you run this example you'll see that it works properly, updating the slice in the caller.
+このサンプルを実行してみると、呼び出し元のスライスを期待通り更新していることがわかると重います。
 
 実行結果:
 
@@ -282,9 +284,10 @@ If you run this example you'll see that it works properly, updating the slice in
 /usr/bin
 ```
 
-[Exercise: Change the type of the receiver to be a value rather than a pointer and run it again. Explain what happens.]
+（演習：レシーバーの型をポインターではなく値に描き変えて再度実行してみましょう。実行結果がなぜそうなるか説明して下さい。）
 
-On the other hand, if we wanted to write a method for path that upper-cases the ASCII letters in the path (parochially ignoring non-English names), the method could be a value because the value receiver will still point to the same underlying array.
+一方で、（非英語のパス名は無視していますが）パス内のASCII文字を大文字に変換するメソッドを書きたい場合、
+メソッドは値レシーバーでも構いません。なぜなら値レシーバーでも同じ配列を参照しているからです。
 
 ```
 type path []byte
@@ -310,11 +313,11 @@ func main() {
 /USR/BIN/TSO
 ```
 
-Here the ToUpper method uses two variables in the for range construct to capture the index and slice element. This form of loop avoids writing p[i] multiple times in the body.
+ここで `ToUpper` メソッドはインデックスとスライスの要素を取得するために `for range` 構文の中で2つの変数を使っています。
+この形によって、`for` の中身で `p[i]` を何度も書くことを回避しています。
 
-[Exercise: Convert the ToUpper method to use a pointer receiver and see if its behavior changes.]
-
-[Advanced exercise: Convert the ToUpper method to handle Unicode letters, not just ASCII.]
+（演習： `ToUpper` メソッドをポインターレシーバーに変更して、動作が変わるか確認しましょう）
+（応用演習： `ToUpper` メソッドでASCII文字だけではなくUnicode文字を扱えるようにしてみましょう）
 
 ## Capacity
 
