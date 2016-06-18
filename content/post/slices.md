@@ -409,11 +409,16 @@ if cap(slice) == len(slice) {
 }
 ```
 
-## Make
+## make
 
-What if we want to grow the slice beyond its capacity? You can't! By definition, the capacity is the limit to growth. But you can achieve an equivalent result by allocating a new array, copying the data over, and modifying the slice to describe the new array.
+スライスをその容量以上に大きくしたい時にはどうしたらいいのでしょうか。出来ません！
+スライスの定義では、容量が大きくできる最大値です。しかし、求めている結果と同じことが、新しい配列を確保して、データをそこにコピーして、
+スライスが新しい配列を指すように変更することで可能となります。
 
-Let's start with allocation. We could use the new built-in function to allocate a bigger array and then slice the result, but it is simpler to use the make built-in function instead. It allocates a new array and creates a slice header to describe it, all at once. The make function takes three arguments: the type of the slice, its initial length, and its capacity, which is the length of the array that make allocates to hold the slice data. This call creates a slice of length 10 with room for 5 more (15-10), as you can see by running it:
+まず新しい配列を確保するところからはじめましょう。より大きな配列を確保して結果を切り取るために組み込み関数の `new` を使うこともできますが、
+代わりに組み込み関数の `make` を使うほうが簡潔にできます。 `make` は新しい配列を確保して、それを指すスライスヘッダーを作成するということを
+一度に行います。 `make` 関数は3つの引数を取ります。スライスの型、初期値の長さと容量です。容量はスライスのデータを保持するために `make` が
+確保する配列の長さを意味します。次の関数呼び出しで、長さ10で余裕が5（15-10）あるスライスを作成しています。
 
 ```
     slice := make([]int, 10, 15)
@@ -426,7 +431,7 @@ Let's start with allocation. We could use the new built-in function to allocate 
 len: 10, cap: 15
 ```
 
-This snippet doubles the capacity of our int slice but keeps its length the same:
+このスニペットではintのスライスの容量を倍にし、長さは同じままに保っています。
 
 ```
     slice := make([]int, 10, 15)
@@ -439,6 +444,8 @@ This snippet doubles the capacity of our int slice but keeps its length the same
     fmt.Printf("len: %d, cap: %d\n", len(slice), cap(slice))
 ```
 
+このコードを実行すると、スライスは、配列を再確保する必要ができるまでに、ずっと多くの余裕ができます。
+
 実行結果:
 
 ```
@@ -446,15 +453,16 @@ len: 10, cap: 15
 len: 10, cap: 30
 ```
 
-After running this code the slice has much more room to grow before needing another reallocation.
+スライスを作成するとき、長さと容量が同じであることがしばしばあります。組み込み関数の `make` にはこのよくある状況に合わせた
+短い書き方があります。長さの引数を容量のデフォルト値にすることができます。容量の引数を書かなければ、長さと容量を同じ値にできます。
 
-When creating slices, it's often true that the length and capacity will be same. The make built-in has a shorthand for this common case. The length argument defaults to the capacity, so you can leave it out to set them both to the same value. After
+次のコードを実行すると
 
 ```
 gophers := make([]Gopher, 10)
 ```
 
-the gophers slice has both its length and capacity set to 10.
+`gophers` スライスは長さと容量が10に設定されます。
 
 ## Copy
 
