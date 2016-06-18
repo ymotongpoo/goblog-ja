@@ -2,7 +2,7 @@
 date = "2016-02-09T21:55:32+09:00"
 draft = false
 title = "Goにおける言語とロケールのマッチング (Language and Locale Matching in Go)"
-
+tags = ["language", "locale", "tag", "BCP 47", "matching"]
 +++
 
 # Goにおける言語とロケールのマッチング
