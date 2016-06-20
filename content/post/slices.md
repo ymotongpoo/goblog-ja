@@ -533,7 +533,6 @@ array[:]
 ```
 
 話がそれてしまいました。 `Insert` 関数を実行してみましょう。
-Now that's out of the way, let's run our Insert function.
 
 ```
     slice := make([]int, 10, 20) // capacity > length であることに注目。要素を追加するための余地です。
@@ -552,16 +551,18 @@ Now that's out of the way, let's run our Insert function.
 [0 1 2 3 4 99 5 6 7 8 9]
 ```
 
-## Append: An example
+## 例: `Append`
 
-A few sections back, we wrote an Extend function that extends a slice by one element. It was buggy, though, because if the slice's capacity was too small, the function would crash. (Our Insert example has the same problem.) Now we have the pieces in place to fix that, so let's write a robust implementation of Extend for integer slices.
+2,3前の節で、スライスを1要素分だけ拡張する関数 `Extend` を書きました。しかしながら、あの実装はバグがありました。
+スライスの容量が小さすぎる場合、関数がクラッシュしてしまうからです。（`Insert` の例も同様の問題があります。）
+いまは修正するための部品がそろったので、intのスライスに対して堅牢な実装の `Extend` を書いてみましょう。
 
 ```
 func Extend(slice []int, element int) []int {
     n := len(slice)
     if n == cap(slice) {
-        // Slice is full; must grow.
-        // We double its size and add 1, so if the size is zero we still grow.
+        // スライスがいっぱいなとき。拡大しなければいけない。
+        // サイズが0でも拡大できるように2倍+1のサイズにする。
         newSlice := make([]int, len(slice), 2*len(slice)+1)
         copy(newSlice, slice)
         slice = newSlice
@@ -572,7 +573,8 @@ func Extend(slice []int, element int) []int {
 }
 ```
 
-In this case it's especially important to return the slice, since when it reallocates the resulting slice describes a completely different array. Here's a little snippet to demonstrate what happens as the slice fills up:
+この場合、スライスを返すという部分が特に重要です。理由は、結果のスライスを再確保したとき、それはまったく異なる配列を参照しているからです。
+スライスがいっぱいになったらどうなるか、短いスニペットで確かめてみましょう。
 
 ```
     slice := make([]int, 0, 5)
@@ -608,21 +610,26 @@ len=10 cap=11 slice=[0 1 2 3 4 5 6 7 8 9]
 address of 0th element: 0x10436120
 ```
 
-Notice the reallocation when the initial array of size 5 is filled up. Both the capacity and the address of the zeroth element change when the new array is allocated.
+最初の大きさ5の配列がいっぱいになったときに再確保していることに注目して下さい。
+新しい配列が確保されたときに、容量の0番目の要素のアドレスが変わっています。
 
-With the robust Extend function as a guide we can write an even nicer function that lets us extend the slice by multiple elements. To do this, we use Go's ability to turn a list of function arguments into a slice when the function is called. That is, we use Go's variadic function facility.
+堅牢な `Extend` 関数を参考にして、複数の要素でスライスを拡張できるずっと便利な関数を書くことが出来ます。
+この実装では、Goで関数が呼びだされてた時に、関数の引数をスライスに変換できる機能を使います。
+つまりGoでの関数の可変数引数の機能を使います。
 
-Let's call the function Append. For the first version, we can just call Extend repeatedly so the mechanism of the variadic function is clear. The signature of Append is this:
+いまから書く関数を `Append` としましょう。最初のバージョンでは、可変数引数の部分を明確にできるよう、
+単純に `Extend` を繰り返し呼び出します。 `Append` のシグネチャーは次のようになります。
 
 ```
 func Append(slice []int, items ...int) []int
 ```
 
-What that says is that Append takes one argument, a slice, followed by zero or more int arguments. Those arguments are exactly a slice of int as far as the implementation of Append is concerned, as you can see:
+これは `Append` は1つの引数 `slice` を取り、それ以降に0以上のintの変数が続くことを意味しています。
+これらの引数は、見て分かる通り、 `Append` がintを扱う限り、intのスライスです。
 
 ```
-// Append appends the items to the slice.
-// First version: just loop calling Extend.
+// Appendはスライスにitemsを追加します。
+// 最初のバージョン：ただExtendを繰り返し呼び出す。
 func Append(slice []int, items ...int) []int {
     for _, item := range items {
         slice = Extend(slice, item)
@@ -631,9 +638,11 @@ func Append(slice []int, items ...int) []int {
 }
 ```
 
-Notice the for range loop iterating over the elements of the items argument, which has implied type []int. Also notice the use of the blank identifier _ to discard the index in the loop, which we don't need in this case.
+`for range` ループが引数 `items` の要素に対して繰り返し `Extend` を呼び出していてます。
+`items` の暗黙的な型は `[]int` です。またブランク識別子 `_` を使って、ループのインデックスを捨てていることも注目してください。
+今回の実装ではインデックスは必要ありません。
 
-Try it:
+試してみます。
 
 ```
     slice := []int{0, 1, 2, 3, 4}
@@ -649,7 +658,8 @@ Try it:
 [0 1 2 3 4 5 6 7 8]
 ```
 
-Another new technique is in this example is that we initialize the slice by writing a composite literal, which consists of the type of the slice followed by its elements in braces:
+この例で新しいテクニックが消化されています。スライスをリテラルを書いて初期化しています。書き方は、スライスの型につづいて、
+各要素をブレースで囲むというものです。
 
 ```
     slice := []int{0, 1, 2, 3, 4}
