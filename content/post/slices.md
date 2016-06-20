@@ -665,7 +665,8 @@ func Append(slice []int, items ...int) []int {
     slice := []int{0, 1, 2, 3, 4}
 ```
 
-The Append function is interesting for another reason. Not only can we append elements, we can append a whole second slice by "exploding" the slice into arguments using the ... notation at the call site:
+`Append` 関数は他の理由でも興味深いです。要素を追加するだけではなく、呼び出し時に `...` 記法を使って
+「展開」させることで、2つめのスライスをまるごと追加することが出来ます。
 
 ```
     slice1 := []int{0, 1, 2, 3, 4}
@@ -682,15 +683,16 @@ The Append function is interesting for another reason. Not only can we append el
 [0 1 2 3 4 55 66 77]
 ```
 
-Of course, we can make Append more efficient by allocating no more than once, building on the innards of Extend:
+もちろん、確保を1度だけしか行わず、`Extend`の中でスライスを作るようにすることで `Append` をより効率的にすることができます。 
 
 ```
-// Append appends the elements to the slice.
-// Efficient version.
+// Appendはスライスに要素を追加します。
+// 効率的なバージョン。
 func Append(slice []int, elements ...int) []int {
     n := len(slice)
     total := len(slice) + len(elements)
     if total > cap(slice) {
+        // 再確保。新しいサイズは1.5倍なので、さらに拡大することができます。
         // Reallocate. Grow to 1.5 times the new size, so we can still grow.
         newSize := total*3/2 + 1
         newSlice := make([]int, total, newSize)
@@ -703,9 +705,10 @@ func Append(slice []int, elements ...int) []int {
 }
 ```
 
-Here, notice how we use copy twice, once to move the slice data to the newly allocated memory, and then to copy the appending items to the end of the old data.
+ここで、`copy` を2度使っているその使い方に注目して下さい。1回めはスライスのデータを新しく確保したメモリに移動するため、
+2回めは追加する要素を古いデータのあとにコピーするために使っています。
 
-Try it; the behavior is the same as before:
+試してみましょう。動作は前の例と同様です。
 
 ```
     slice1 := []int{0, 1, 2, 3, 4}
