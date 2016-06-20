@@ -551,7 +551,7 @@ array[:]
 [0 1 2 3 4 99 5 6 7 8 9]
 ```
 
-## 例: `Append`
+## `Append`: 例
 
 2,3前の節で、スライスを1要素分だけ拡張する関数 `Extend` を書きました。しかしながら、あの実装はバグがありました。
 スライスの容量が小さすぎる場合、関数がクラッシュしてしまうからです。（`Insert` の例も同様の問題があります。）
@@ -725,36 +725,42 @@ func Append(slice []int, elements ...int) []int {
 [0 1 2 3 4 55 66 77]
 ```
 
-## Append: The built-in function
+## `append`: 組み込み関数
 
-And so we arrive at the motivation for the design of the append built-in function. It does exactly what our Append example does, with equivalent efficiency, but it works for any slice type.
+ようやく組み込み関数の `append` を設計する動機までたどり着きました。この関数は先の `Append` の例と同じ処理を行い、
+同じくらい効率的で、それでいてあらゆるスライス型で動作します。
 
-A weakness of Go is that any generic-type operations must be provided by the run-time. Some day that may change, but for now, to make working with slices easier, Go provides a built-in generic append function. It works the same as our int slice version, but for any slice type.
+Goの弱点として、ジェネリクス型の操作はランタイムに行わなければいけないというものがあります。
+いつか変わるかもしれませんが、いまは、スライスの操作が簡単になるように、汎用の `append` 関数を提供しています。
+機能は先のintのスライスのバージョンと同じですが、あらゆるスライス型に対応している点が異なります。
 
-Remember, since the slice header is always updated by a call to append, you need to save the returned slice after the call. In fact, the compiler won't let you call append without saving the result.
+覚えておいてほしいのは、スライスヘッダーは `append` を呼び出すたびに更新されるので、
+呼び出したあとは返されたスライスを保存しなければいけません。事実、`append` を呼んだあとに結果を保存しないと
+コンパイラがエラーを吐きます。
 
-Here are some one-liners intermingled with print statements. Try them, edit them and explore:
+次のコードは `append` を使った言い回しをprint文とともに並べたものです。
+そのまま実行したり、編集したりしながら、機能を確認してみてください。
 
 ```
-    // Create a couple of starter slices.
+    // 2つのスライスを作成します。
     slice := []int{1, 2, 3}
     slice2 := []int{55, 66, 77}
     fmt.Println("Start slice: ", slice)
     fmt.Println("Start slice2:", slice2)
 
-    // Add an item to a slice.
+    // スライスにアイテムを追加します。
     slice = append(slice, 4)
     fmt.Println("Add one item:", slice)
 
-    // Add one slice to another.
+    // スライスを他のスライスに追加します。
     slice = append(slice, slice2...)
     fmt.Println("Add one slice:", slice)
 
-    // Make a copy of a slice (of int).
+    // （intの）スライスのコピーを作ります。
     slice3 := append([]int(nil), slice...)
     fmt.Println("Copy a slice:", slice3)
 
-    // Copy a slice to the end of itself.
+    // スライスを自分自身の後ろにコピーします。
     fmt.Println("Before append to self:", slice)
     slice = append(slice, slice...)
     fmt.Println("After append to self:", slice)
@@ -772,9 +778,9 @@ Before append to self: [1 2 3 4 55 66 77]
 After append to self: [1 2 3 4 55 66 77 1 2 3 4 55 66 77]
 ```
 
-It's worth taking a moment to think about the final one-liner of that example in detail to understand how the design of slices makes it possible for this simple call to work correctly.
+スライスの設計によって簡潔な記述できちんと動作することを理解できるので、時間を取って最後の例の詳細な動作を考えてみましょう。
 
-There are lots more examples of append, copy, and other ways to use slices on the community-built ["Slice Tricks" Wiki page](https://golang.org/wiki/SliceTricks).
+ `append` や `copy` などのスライスの操作の例は、コミュニティが作成した ["Slice Tricks" というWikiページ](https://golang.org/wiki/SliceTricks) にあります。
 
 ## Nil
 
