@@ -784,7 +784,8 @@ After append to self: [1 2 3 4 55 66 77 1 2 3 4 55 66 77]
 
 ## Nil
 
-As an aside, with our newfound knowledge we can see what the representation of a nil slice is. Naturally, it is the zero value of the slice header:
+余談として、これまで得た知識を考えると、 `nil` スライスがどのように表現されるかわかります。
+自然に考えるとスライスヘッダーのゼロ値は
 
 ```
 sliceHeader{
@@ -794,23 +795,26 @@ sliceHeader{
 }
 ```
 
-or just
+あるいは
 
 ```
 sliceHeader{}
 ```
 
-The key detail is that the element pointer is nil too. The slice created by
+と表現されます。重要な点は、要素のポインターも `nil` になっている点です。次の配列から作られたスライスは
 
 ```
 array[0:0]
 ```
 
-has length zero (and maybe even capacity zero) but its pointer is not nil, so it is not a nil slice.
+長さ0（かつおそらく容量0）ですが、そのポインターは `nil` ではないので、これは `nil` スライスではありません。
 
-As should be clear, an empty slice can grow (assuming it has non-zero capacity), but a nil slice has no array to put values in and can never grow to hold even one element.
+明確にすると、空のスライスは（容量が0ではないと想定すると）拡大することができますが、 `nil` スライスは値を入れる配列がなく、
+拡大して1つの要素も保持することさえできません。
 
-That said, a nil slice is functionally equivalent to a zero-length slice, even though it points to nothing. It has length zero and can be appended to, with allocation. As an example, look at the one-liner above that copies a slice by appending to a nil slice.
+つまり、`nil` スライスは、たとえポインターが何も指していないとしても、機能的には長さ0のスライスと同値です。
+長さ0のスライスは、長さが0で確保することで要素を追加することが出来ます。
+例として、先の例でスライスを `nil` スライスに追加しているものを確認して下さい。
 
 ## Strings
 
