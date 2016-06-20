@@ -464,9 +464,11 @@ gophers := make([]Gopher, 10)
 
 `gophers` スライスは長さと容量が10に設定されます。
 
-## Copy
+## copy
 
-When we doubled the capacity of our slice in the previous section, we wrote a loop to copy the old data to the new slice. Go has a built-in function, copy, to make this easier. Its arguments are two slices, and it copies the data from the right-hand argument to the left-hand argument. Here's our example rewritten to use copy:
+前の説でスライス `slice` の容量を倍にしたときに、古いデータを新しいスライスにコピーするためにループを書きました。
+この処理をより簡単にするために、Goには `copy` という組み込み関数があります。引数は2つのスライスで、右側の引数から左側の引数に
+データをコピーします。 `copy` を使って前の例を書き直すと次のようになります。
 
 ```
     newSlice := make([]int, len(slice), 2*cap(slice))
@@ -480,54 +482,61 @@ len: 10, cap: 15
 len: 10, cap: 30
 ```
 
-The copy function is smart. It only copies what it can, paying attention to the lengths of both arguments. In other words, the number of elements it copies is the minimum of the lengths of the two slices. This can save a little bookkeeping. Also, copy returns an integer value, the number of elements it copied, although it's not always worth checking.
+`copy` 関数は頭が良いです。両方の引数の長さに注意を払いながら、コピー可能な分だけコピーをします。
+言い換えれば、`copy` 関数がコピーする要素の数は、2つの引数の長さの短い方です。
+要素の大小を自分で管理しなくて済みます。また、常に確認する必要はないですが、 `copy` はコピーした要素の数を整数値で返します。
 
-The copy function also gets things right when source and destination overlap, which means it can be used to shift items around in a single slice. Here's how to use copy to insert a value into the middle of a slice.
+`copy` 関数はコピー元とコピー先に重なるところがある場合にもきちんと動作します。つまり、1つのスライス内で要素を動かしたい場合です。
+次の例では `copy` を使ってどのようにスライスの真ん中に値を挿入するかをお見せします。
 
 ```
-// Insert inserts the value into the slice at the specified index,
-// which must be in range.
-// The slice must have room for the new element.
+// Insertは値をスライス中の指定したインデックスに挿入します。
+// 指定するインデックスはスライスの範囲内でなければいけません。
+// スライスには新しい要素が入る余地がなければいけません。
 func Insert(slice []int, index, value int) []int {
-    // Grow the slice by one element.
+    // スライスを1要素だけ大きくする
     slice = slice[0 : len(slice)+1]
-    // Use copy to move the upper part of the slice out of the way and open a hole.
+    // 指定したインデックスよりも大きいインデックスをずらして1要素分隙間をあける
     copy(slice[index+1:], slice[index:])
-    // Store the new value.
+    // 新しい値を保存する
     slice[index] = value
-    // Return the result.
+    // 結果を返す
     return slice
 }
 ```
 
-There are a couple of things to notice in this function. First, of course, it must return the updated slice because its length has changed. Second, it uses a convenient shorthand. The expression
+この関数で注意することがいくつかあります。もちろん、まずはじめに、スライスの長さが変わったので、更新されたスライスを返さなければいけません。
+つぎに、この例では便利な略記法を使っています。この式は
 
 ```
 slice[i:]
 ```
 
-means exactly the same as
+つぎの式とまったく同じ意味です。
 
 ```
 slice[i:len(slice)]
 ```
 
-Also, although we haven't used the trick yet, we can leave out the first element of a slice expression too; it defaults to zero. Thus
+また、まだこの使い方は見せていませんが、スライス記法で最初の要素を省略することも可能です。デフォルトでは0になります。
+したがって
 
 ```
 slice[:]
 ```
 
-just means the slice itself, which is useful when slicing an array. This expression is the shortest way to say "a slice describing all the elements of the array":
+はそのスライス自身を表すことにほかなりません。この書き方は配列をスライスにするときに便利です。
+この書き方は「ある配列の要素をすべて持つスライス」を宣言するのに最も短く書ける方法です。
 
 ```
 array[:]
 ```
 
+話がそれてしまいました。 `Insert` 関数を実行してみましょう。
 Now that's out of the way, let's run our Insert function.
 
 ```
-    slice := make([]int, 10, 20) // Note capacity > length: room to add element.
+    slice := make([]int, 10, 20) // capacity > length であることに注目。要素を追加するための余地です。
     for i := range slice {
         slice[i] = i
     }
