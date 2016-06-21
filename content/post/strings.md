@@ -41,21 +41,23 @@ stringの中身を考える限りにおいては、それはバイトのスラ�
     const sample = "\xbd\xb2\x3d\xbc\x20\xe2\x8c\x98"
 ```
 
-## Printing strings
+## 文字列を表示する
 
-Because some of the bytes in our sample string are not valid ASCII, not even valid UTF-8, printing the string directly will produce ugly output. The simple print statement
+サンプルの文字列内のいくつかのバイトは正しいASCII文字やUTF-8の値ではないので、直接表示するとおかしな出力になります。
+単順に表示すると
 
 ```
     fmt.Println(sample)
 ```
 
-produces this mess (whose exact appearance varies with the environment):
+おかしな結果になります。（見た目は環境によって変わります。）
 
 ```
 ��=� ⌘
 ```
 
-To find out what that string really holds, we need to take it apart and examine the pieces. There are several ways to do this. The most obvious is to loop over its contents and pull out the bytes individually, as in this for loop:
+文字列が本当はどのような値を保持しているかを見たければ、文字列を分解して、個々に調べる必要があります。
+それにはいくつかの方法があります。最も明示的な方法は、中身をループで回して、バイトを1つずつ取り出す方法です。
 
 ```
     for i := 0; i < len(sample); i++ {
@@ -63,45 +65,48 @@ To find out what that string really holds, we need to take it apart and examine 
     }
 ```
 
-As implied up front, indexing a string accesses individual bytes, not characters. We'll return to that topic in detail below. For now, let's stick with just the bytes. This is the output from the byte-by-byte loop:
+先に言ったように、文字列にインデックスでアクセスすると個々の文字ではなく個々のバイトにアクセスします。
+その話についてはあとで触れるとして、いまはバイトについてだけ考えましょう。バイトごとのループの出力はこのようになります。
 
 ```
 bd b2 3d bc 20 e2 8c 98
 ```
 
-Notice how the individual bytes match the hexadecimal escapes that defined the string.
+個々のバイトが、文字列を定義したエスケープ済み16進数と一致することに注目してください。
 
-A shorter way to generate presentable output for a messy string is to use the `%x` (hexadecimal) format verb of fmt.Printf. It just dumps out the sequential bytes of the string as hexadecimal digits, two per byte.
+汚い文字列を表示できる形にするのにより短い書き方は `fmt.Printf` の `%x`（16進数）フォーマット書式です。
+この書式では文字列の一連のバイトを16進数の1バイトあたり2つ数字としてダンプします。
 
 ```
     fmt.Printf("%x\n", sample)
 ```
 
-Compare its output to that above:
+これの出力を先の表示と比較してみましょう。
 
 ```
 bdb23dbc20e28c98
 ```
 
-A nice trick is to use the "space" flag in that format, putting a space between the % and the x. Compare the format string used here to the one above,
+コツとしては、書式内で `%` と `x` の間に空白を置く「空白」フラグを使うことです。上の書式文字列と比較してみましょう。 
 
 ```
     fmt.Printf("% x\n", sample)
 ```
 
-and notice how the bytes come out with spaces between, making the result a little less imposing:
+結果の出力にはバイトごとに間に空白が入り、より自然な形になったことに気がつくでしょう。
 
 ```
 bd b2 3d bc 20 e2 8c 98
 ```
 
-There's more. The %q (quoted) verb will escape any non-printable byte sequences in a string so the output is unambiguous.
+他にも方法があります。 `%q` （引用）書式を使うと、文字列中でうまく表示ができないバイト列がある場合は、
+出力がおかしくならないようにエスケープしてくれます。
 
 ```
     fmt.Printf("%q\n", sample)
 ```
 
-This technique is handy when much of the string is intelligible as text but there are peculiarities to root out; it produces:
+この方法は、文字列の大部分は読めるけれど、おかしな所を無くしたい時に便利です。先ほどの文字列では次のような出力になります。
 
 ```
 "\xbd\xb2=\xbc ⌘"
