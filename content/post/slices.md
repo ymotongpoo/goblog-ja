@@ -874,7 +874,7 @@ slice := []byte(usr)
 一度動作原理を理解してしまえば、スライスは簡単に使えるだけでなく、特に `copy` や `append` といった組み込み関数のサポートで、
 強力で表現力の高いものとなります。
 
-## More reading
+## 関連記事
 
 Goのスライスに関する資料はたくさんあります。先にも触れた、["Slice Tricks"のWikiページ](https://golang.org/wiki/SliceTricks) には
 たくさんの例が載っています。[Go Slices](http://blog.golang.org/go-slices-usage-and-internals) のブログポストには、
