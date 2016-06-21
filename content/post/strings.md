@@ -10,13 +10,18 @@ tags = ["strings", "bytes", "runes", "characters"]
 
 ## はじめに
 
-[1つ前の記事](./slices) ではGoにおいてスライスがどのように動作するかを説明しました。
+[1つ前の記事](./slices/) では、その実装の背後にある機能を解説する例とともに、Goにおいてスライスがどのように動作するかを説明しました。
+その知識を前提として、この記事ではGoにおける文字列について話します。
+まず最初に、文字列はブログの記事にしては簡単すぎるように見えるかもしれませんが、上手に使うには文字列の動作を理解するだけでなく、
+バイト、文字、ルーンの違いについても理解し、UnicodeとUTF-8の違いについても理解し、文字列と文字列リテラルの違いについても理解し、
+その他多くの細かな違いについて理解する必要があります。
 
-The [previous blog post](http://blog.golang.org/slices) explained how slices work in Go, using a number of examples to illustrate the mechanism behind their implementation. Building on that background, this post discusses strings in Go. At first, strings might seem too simple a topic for a blog post, but to use them well requires understanding not only how they work, but also the difference between a byte, a character, and a rune, the difference between Unicode and UTF-8, the difference between a string and a string literal, and other even more subtle distinctions.
+この話題を議論するときの1つのアプローチとして、FAQである「Goの文字列のn番目のインデックスにアクセスした時に、
+なぜn番目の文字を取得できないのか」という質問の回答を考えてみましょう。この記事で説明していきますが、この質問には
+現代社会でテキストがどのように動作しているかを多くの観点から考えるきっかけとなります。
 
-One way to approach this topic is to think of it as an answer to the frequently asked question, "When I index a Go string at position n, why don't I get the nth character?" As you'll see, this question leads us to many details about how text works in the modern world.
-
-An excellent introduction to some of these issues, independent of Go, is Joel Spolsky's famous blog post, [The Absolute Minimum Every Software Developer Absolutely, Positively Must Know About Unicode and Character Sets (No Excuses!)](http://www.joelonsoftware.com/articles/Unicode.html). Many of the points he raises will be echoed here.
+Goにかぎらず、これらの問題について考える最高の導入は、Joel Spolskyの有名なブログポスト、[The Absolute Minimum Every Software Developer Absolutely, Positively Must Know About Unicode and Character Sets (No Excuses!)](http://www.joelonsoftware.com/articles/Unicode.html) です。
+彼がその記事の中で挙げた点を、この記事でも繰り返し言及します。
 
 ## What is a string?
 
