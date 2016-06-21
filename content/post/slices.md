@@ -816,47 +816,54 @@ array[0:0]
 長さ0のスライスは、長さが0で確保することで要素を追加することが出来ます。
 例として、先の例でスライスを `nil` スライスに追加しているものを確認して下さい。
 
-## Strings
+## 文字列 (string)
 
-Now a brief section about strings in Go in the context of slices.
+この節では、スライスという観点から、Goにおける文字列の扱いについて簡単に説明します。
 
-Strings are actually very simple: they are just read-only slices of bytes with a bit of extra syntactic support from the language.
+文字列は、実際に非常に単純です。文字列は読み込み専用のバイトのスライスにいくつか言語からの構文サポートがついたものです。　
 
-Because they are read-only, there is no need for a capacity (you can't grow them), but otherwise for most purposes you can treat them just like read-only slices of bytes.
+読み込み専用なので、（拡大させることができないことから）容量を考える必要がありません。かわりにたいていの目的においては、
+単なる読み込み専用のバイトのスライスとして扱うことが出来ます。
 
-For starters, we can index them to access individual bytes:
-
-```
-slash := "/usr/ken"[0] // yields the byte value '/'.
-```
-
-We can slice a string to grab a substring:
+まずはじめに、個々のバイトにインデックスでアクセスすることが出来ます。
 
 ```
-usr := "/usr/ken"[0:4] // yields the string "/usr"
+slash := "/usr/ken"[0] // '/' のバイト値を返します。
 ```
 
-It should be obvious now what's going on behind the scenes when we slice a string.
+部分文字列を取得するために文字列を切り取ることが出来ます。
 
-We can also take a normal slice of bytes and create a string from it with the simple conversion:
+```
+usr := "/usr/ken"[0:4] // "/usr" という文字列を返します。
+```
+
+文字列を切り取るときに、その裏で何が起きているかは明らかでしょう。
+
+単なるバイトのスライスから、単純にキャストすることで文字列を作ることも出来ます。
 
 ```
 str := string(slice)
 ```
 
-and go in the reverse direction as well:
+同様に逆も可能です。
 
 ```
 slice := []byte(usr)
 ```
 
-The array underlying a string is hidden from view; there is no way to access its contents except through the string. That means that when we do either of these conversions, a copy of the array must be made. Go takes care of this, of course, so you don't have to. After either of these conversions, modifications to the array underlying the byte slice don't affect the corresponding string.
+文字列の内部にある配列は見えないようになっていて、文字列（string）を通してしかその配列の中身にはアクセスできません。
+つまり、文字列とバイトスライスの間で変換を行うと、かならず配列のコピーが発生するということです。
+もちろん、Goがコピー処理を行うので、自分で行う必要はありません。文字列からバイトスライスに変換した際には、
+変換後のバイトスライス内の配列を操作しても、変換元の文字列には影響しません。
 
-An important consequence of this slice-like design for strings is that creating a substring is very efficient. All that needs to happen is the creation of a two-word string header. Since the string is read-only, the original string and the string resulting from the slice operation can share the same array safely.
+文字列をスライスのような設計にしたことによる重要な帰結として、部分文字列を非常に効率よく精製できるようになったことがあります。
+部分文字列を作るときに必要なことは、2つのフィールドを持つ文字列のヘッダーを生成することです。
+文字列は読み取り専用なので、元の文字列とそこから得られた部分文字列は同じ配列を安全に共有できます。
 
-A historical note: The earliest implementation of strings always allocated, but when slices were added to the language, they provided a model for efficient string handling. Some of the benchmarks saw huge speedups as a result.
+歴史的経緯：最初期の文字列の実装では常に再確保していましたが、Go言語にスライスがついかされたときに、スライスによって
+効率的な文字列操作のためのモデルが提供されました。結果としていくつかのベンチマークで大幅な高速化が確認されました。
 
-There's much more to strings, of course, and a [separate blog post](http://blog.golang.org/strings) covers them in greater depth.
+もちろん、文字列に関してはもっと語ることがありますが、それは[別のブログポスト](./string)でより深く説明することにします。
 
 ## Conclusion
 
