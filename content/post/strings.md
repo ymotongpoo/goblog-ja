@@ -23,15 +23,19 @@ tags = ["strings", "bytes", "runes", "characters"]
 Goにかぎらず、これらの問題について考える最高の導入は、Joel Spolskyの有名なブログポスト、[The Absolute Minimum Every Software Developer Absolutely, Positively Must Know About Unicode and Character Sets (No Excuses!)](http://www.joelonsoftware.com/articles/Unicode.html) です。
 彼がその記事の中で挙げた点を、この記事でも繰り返し言及します。
 
-## What is a string?
+## stringとは何か
 
-Let's start with some basics.
+基礎からはじめましょう。
 
-In Go, a string is in effect a read-only slice of bytes. If you're at all uncertain about what a slice of bytes is or how it works, please read the [previous blog post](http://blog.golang.org/slices); we'll assume here that you have.
+Goでは、文字列は実際には読み取り専用のバイトのスライスでした。バイトのスライスがなにかについて不確かな場合、あるいはそれがどう動作するか
+不確かな場合は、[前のブログポスト](./slices/) を読んで下さい。この記事ではすでに前のブログポストを読んでいることを前提とします。
 
-It's important to state right up front that a string holds *arbitrary* bytes. It is not required to hold Unicode text, UTF-8 text, or any other predefined format. As far as the content of a string is concerned, it is exactly equivalent to a slice of bytes.
+stringは *任意の* バイトを保持できることをはっきりと述べておくことは重要です。
+stringはUnicode文字もUTF-8文字も、その他の事前定義の形式の文字を持つ必要はありません。
+stringの中身を考える限りにおいては、それはバイトのスライスについて考えることと同義です。
 
-Here is a string literal (more about those soon) that uses the `\xNN` notation to define a string constant holding some peculiar byte values. (Of course, bytes range from hexadecimal values 00 through FF, inclusive.)
+（すぐあとで説明しますが）あるバイト値を定数で持つように `\xNN` という記法を使って文字列リテラルを定義しました。
+（もちろん、16進数でのバイト値の範囲は両端含んで `00` から `FF` です）
 
 ```
     const sample = "\xbd\xb2\x3d\xbc\x20\xe2\x8c\x98"
