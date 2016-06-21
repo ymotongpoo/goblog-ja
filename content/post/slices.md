@@ -1,6 +1,6 @@
 +++
 date = "2013-09-26T09:42:44+09:00"
-draft = true
+draft = false
 title = "配列、スライス（と文字列）：'append'の動作原理 (Arrays, slices (and strings): The mechanics of 'append')"
 tags = ["array", "slice", "string", "copy", "append"]
 +++
@@ -865,19 +865,25 @@ slice := []byte(usr)
 
 もちろん、文字列に関してはもっと語ることがありますが、それは[別のブログポスト](./string)でより深く説明することにします。
 
-## Conclusion
+## 結論
 
-To understand how slices work, it helps to understand how they are implemented. There is a little data structure, the slice header, that is the item associated with the slice variable, and that header describes a section of a separately allocated array. When we pass slice values around, the header gets copied but the array it points to is always shared.
+スライスがどのように動作するかを理解するために、スライスがどのように実装されているかを理解することがその助けになります。
+スライスヘッダーという小さなデータ構造がスライス変数と紐付いていて、そのヘッダーが確保された配列とは別にデータの区切りを示しています。
+スライスの値を渡すと、ヘッダーはコピーされますが、内部の配列へのポインターはつねに共有されます。
 
-Once you appreciate how they work, slices become not only easy to use, but powerful and expressive, especially with the help of the copy and append built-in functions.
+一度動作原理を理解してしまえば、スライスは簡単に使えるだけでなく、特に `copy` や `append` といった組み込み関数のサポートで、
+強力で表現力の高いものとなります。
 
 ## More reading
 
-There's lots to find around the intertubes about slices in Go. As mentioned earlier, the ["Slice Tricks" Wiki page](https://golang.org/wiki/SliceTricks) has many examples. The [Go Slices](http://blog.golang.org/go-slices-usage-and-internals) blog post describes the memory layout details with clear diagrams. Russ Cox's [Go Data Structures](http://research.swtch.com/godata) article includes a discussion of slices along with some of Go's other internal data structures.
+Goのスライスに関する資料はたくさんあります。先にも触れた、["Slice Tricks"のWikiページ](https://golang.org/wiki/SliceTricks) には
+たくさんの例が載っています。[Go Slices](http://blog.golang.org/go-slices-usage-and-internals) のブログポストには、
+メモリのレイアウトが、綺麗な図とともに説明されています。Russ Coxの [Go Data Structures](http://research.swtch.com/godata) には
+スライスが、Goの他の内部データ構造とともに議論されています。
 
-There is much more material available, but the best way to learn about slices is to use them.
+資料は他にもたくさんありますが、スライスを学ぶ最善の方法はそれを使うことです。
 
 By Rob Pike
 
 ## あわせて読みたい
-* [Go Slices: usage and internals](https://blog.golang.org/go-slices-usage-and-internals)åå
+* [Go Slices: usage and internals](https://blog.golang.org/go-slices-usage-and-internals)
