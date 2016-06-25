@@ -112,23 +112,28 @@ bd b2 3d bc 20 e2 8c 98
 "\xbd\xb2=\xbc ⌘"
 ```
 
-If we squint at that, we can see that buried in the noise is one ASCII equals sign, along with a regular space, and at the end appears the well-known Swedish "Place of Interest" symbol. That symbol has Unicode value U+2318, encoded as UTF-8 by the bytes after the space (hex value 20): e2 8c 98.
+この出力をよく見てみると、おかしな文字列の中にASCII文字の等号記号と半角スペースとよく知られたスウェーデン語の「Place of Interest」
+記号があることがわかります。この記号はUnicode値ではU+2318で表され、UTF-8では16進数で28で表される半角スペースに続いて、
+e2 8c 98で表されます。
 
-If we are unfamiliar or confused by strange values in the string, we can use the "plus" flag to the %q verb. This flag causes the output to escape not only non-printable sequences, but also any non-ASCII bytes, all while interpreting UTF-8. The result is that it exposes the Unicode values of properly formatted UTF-8 that represents non-ASCII data in the string:
+文字列の中におかしな値があることでよくわからなくなってしまったり混乱してしまうようであれば、`%q` 書式の中で「プラス」記号を使うと良いでしょう。
+このフラグはうまく表示できないバイト列をエスケープするだけでなく、UTF-8として解釈できる非ASCII文字のバイト列もエスケープします。
+このフラグを使うと、非ASCII文字のUTF-8として解釈できるUnicode値を文字列内に表示します。
 
 ```
     fmt.Printf("%+q\n", sample)
 ```
 
-With that format, the Unicode value of the Swedish symbol shows up as a \u escape:
+この書式では、先ほどのスウェーデン語の記号のUnicode値は `\u` でエスケープされて表示されます。
 
 ```
 "\xbd\xb2=\xbc \u2318"
 ```
 
-These printing techiques are good to know when debugging the contents of strings, and will be handy in the discussion that follows. It's worth pointing out as well that all these methods behave exactly the same for byte slices as they do for strings.
+これらのテクニックは文字列の中身をデバッグしたい時には知っておくと便利なものですし、これから先の議論においても便利なものになります。
+これらの方法は文字列の場合と同様にバイト列に対してもまったく同様に使えることも知っておくと良いでしょう。
 
-Here's the full set of printing options we've listed, presented as a complete program you can run (and edit) right in the browser:
+つぎに、これまでに挙げた表示のオプションを、実行できるプログラムの形ですべて挙げてみます。
 
 ```
 package main
@@ -161,9 +166,9 @@ func main() {
 }
 ```
 
-[Exercise: Modify the examples above to use a slice of bytes instead of a string. Hint: Use a conversion to create the slice.]
+（演習：上の例を変更して、文字列の代わりにバイトスライスを使ってみましょう。 ヒント：スライスを作るにはキャストを使います。）
 
-[Exercise: Loop over the string using the %q format on each byte. What does the output tell you?]
+（演習：文字列内の個々のバイトに対して `%q` 書式を使ってみましょう。出力から何が分かるでしょうか。）
 
 ## UTF-8 and string literals
 
