@@ -112,7 +112,7 @@ bd b2 3d bc 20 e2 8c 98
 "\xbd\xb2=\xbc ⌘"
 ```
 
-この出力をよく見てみると、おかしな文字列の中にASCII文字の等号記号と半角スペースとよく知られたスウェーデン語の「Place of Interest」
+この出力をよく見てみると、おかしな文字列の中にASCII文字の等号記号と半角スペースとよく知られたスウェーデン語の「Place of Interest（名所）」
 記号があることがわかります。この記号はUnicode値ではU+2318で表され、UTF-8では16進数で28で表される半角スペースに続いて、
 e2 8c 98で表されます。
 
@@ -170,11 +170,14 @@ func main() {
 
 （演習：文字列内の個々のバイトに対して `%q` 書式を使ってみましょう。出力から何が分かるでしょうか。）
 
-## UTF-8 and string literals
+## UTF-8と文字列リテラル
 
-As we saw, indexing a string yields its bytes, not its characters: a string is just a bunch of bytes. That means that when we store a character value in a string, we store its byte-at-a-time representation. Let's look at a more controlled example to see how that happens.
+これまで見てきたように、文字列をインデックスでアクセスするとその場所にある文字ではなくバイトが返されます。stringはバイト列にすぎないのです。
+すなわち、string内に文字値を保存すると、そのバイト表現を保存します。何が起きているか、確認しながら見てみましょう。
 
-Here's a simple program that prints a string constant with a single character three different ways, once as a plain string, once as an ASCII-only quoted string, and once as individual bytes in hexadecimal. To avoid any confusion, we create a "raw string", enclosed by back quotes, so it can contain only literal text. (Regular strings, enclosed by double quotes, can contain escape sequences as we showed above.)
+次のサンプルは、1文字の文字列定数を3通りの方法で出力する簡単なプログラムです。それぞれ、単純な文字列、ASCII文字限定の引用文字列、
+16進数での個々のバイト列です。混乱を避けるため、文字列定数がリテラル文字列のみを含むようにバッククォートで囲った「生文字列」を生成します。
+（先に見たようにダブルクォートで囲った通常の文字列ではエスケープシーケンスを含む可能性があります。）
 
 ```
 func main() {
@@ -196,7 +199,7 @@ func main() {
 }
 ```
 
-The output is:
+出力は次のとおりです。
 
 ```
 plain string: ⌘
@@ -204,23 +207,32 @@ quoted string: "\u2318"
 hex bytes: e2 8c 98
 ```
 
-which reminds us that the Unicode character value U+2318, the "Place of Interest" symbol ⌘, is represented by the bytes e2 8c 98, and that those bytes are the UTF-8 encoding of the hexadecimal value 2318.
+これでわかることは、Unicode文字値 U+2318 （「Place of Interest（名所）」記号 ⌘）は、バイト列 `e2 8c 98` で表現され、
+これらのバイト列は16進数値 `2318` のUTF-8エンコードであるとわかります。
 
-It may be obvious or it may be subtle, depending on your familiarity with UTF-8, but it's worth taking a moment to explain how the UTF-8 representation of the string was created. The simple fact is: it was created when the source code was written.
+これは、UTF-8に詳しい人にとっては、明らかで瑣末なことかもしれませんが、文字列のUTF-8表現がどのように生成されるのかを説明するか
+を考えるみることは有意義なことです。単純な事実としては、UTF-8の文字列がソースコードが書かれた時に生成されている、ということです。
 
-Source code in Go is defined to be UTF-8 text; no other representation is allowed. That implies that when, in the source code, we write the text
+GoのソースコードはUTF-8で書かれると定義されています。他のエンコードは許されていません。これは、ソースコード中に次の文字列を書いたときに、
 
 ```
 `⌘`
 ```
 
-the text editor used to create the program places the UTF-8 encoding of the symbol ⌘ into the source text. When we print out the hexadecimal bytes, we're just dumping the data the editor placed in the file.
+そのプログラムを書くために使っているテキストエディターは記号 ⌘ のUTF-8エンコードをソーステキスト中に埋め込んでいる、
+ということを示唆しています。16進数バイトを表示するとき、それはエディターがファイルに埋め込んだデータをただダンプしているにすぎません。
 
-In short, Go source code is UTF-8, *so the source code for the string literal is UTF-8 text*. If that string literal contains no escape sequences, which a raw string cannot, the constructed string will hold exactly the source text between the quotes. Thus by definition and by construction the raw string will always contain a valid UTF-8 representation of its contents. Similarly, unless it contains UTF-8-breaking escapes like those from the previous section, a regular string literal will also always contain valid UTF-8.
+短く言えば、GoのソースコードはUTF-8で、 *したがって、文字列リテラルのソースコードはUTF-8文字列なのです* 。
+生文字列ではありえませんが、その文字列リテラルにエスケープシーケンスがなければ、生成された文字列は
+まさに引用符の間にあるソースの文字列だけを保持します。
+したがって、その定義とその生成過程から、生文字列は常にその正しいUTF-8表現を保持しています。
+同様に、前の節で出てきたようなUTF-8の規則から外れたエスケープを持っていなければ、通常の文字列リテラルでも常に正しいUTF-8を保持しています。
 
-Some people think Go strings are always UTF-8, but they are not: only string literals are UTF-8. As we showed in the previous section, string values can contain arbitrary bytes; as we showed in this one, string literals always contain UTF-8 text as long as they have no byte-level escapes.
+Goの文字列は常にUTF-8だと思っている人もいますが、そうではありません。文字列リテラルだけがUTF-8なのです。
+前の節でお見せしたように、文字列値には任意のバイトを含むことが出来ます。この節で説明したように、文字列リテラルはバイトレベルでのエスケープが
+ない限り、常にUTF-8の文字列を保持しています。
 
-To summarize, strings can contain arbitrary bytes, but when constructed from string literals, those bytes are (almost always) UTF-8.
+まとめると、文字列は任意のバイトを含むことが出来ますが、文字列リテラルから生成された場合は、そのバイト列は（ほぼ常に）UTF-8です。
 
 ## Code points, characters, and runes
 
