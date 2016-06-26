@@ -234,33 +234,44 @@ Goの文字列は常にUTF-8だと思っている人もいますが、そうで�
 
 まとめると、文字列は任意のバイトを含むことが出来ますが、文字列リテラルから生成された場合は、そのバイト列は（ほぼ常に）UTF-8です。
 
-## Code points, characters, and runes
+## コードポイント、文字、ルーン
 
-We've been very careful so far in how we use the words "byte" and "character". That's partly because strings hold bytes, and partly because the idea of "character" is a little hard to define. The Unicode standard uses the term "code point" to refer to the item represented by a single value. The code point U+2318, with hexadecimal value 2318, represents the symbol ⌘. (For lots more information about that code point, see its Unicode page.)
+ここまで、「バイト」と「文字」というそれぞれの言葉の使い分けに繊細な注意を払ってきました。
+その理由は、文字列がバイト列を保持できること、そして「文字」という概念はいささか定義が難しいことから来ています。
+Unicode 標準は、1つの値で表現される項目を指す場合「コードポイント」という用語を使います。
+コードポイント U+2318 、16進数値 2318 は記号 ⌘ を表します。
+（このコードポイントについてもっと知りたい場合は、その[Unicodeページ](http://unicode.org/cldr/utility/character.jsp?a=2318)を見てみましょう。）
 
-To pick a more prosaic example, the Unicode code point U+0061 is the lower case Latin letter 'A': a.
+もっと平凡な例を出すと、Unicodeコードポイント U+0061 は、小文字のラテン文字 'A'、すなわち a です。
 
-But what about the lower case grave-accented letter 'A', à? That's a character, and it's also a code point (U+00E0), but it has other representations. For example we can use the "combining" grave accent code point, U+0300, and attach it to the lower case letter a, U+0061, to create the same character à. In general, a character may be represented by a number of different sequences of code points, and therefore different sequences of UTF-8 bytes.
+しかし、小文字のグレーブアクセント付き文字の 'A'、つまり à はどう表現されるのでしょうか。これは文字で、コードポイント（U+00E0）もあります。
+しかし、ほかの表現もあります。たとえば、グレーブアクセントのコードポイント U+0300 を小文字 a のコードポイント U+0061 の「連結」を使って、
+同じ文字 à を生成できます。一般的に、文字はいくつもの異なるコードポイントシーケンスで表現しうるため、異なるUTF-8のバイト列で表現できます。
 
-The concept of character in computing is therefore ambiguous, or at least confusing, so we use it with care. To make things dependable, there are normalization techniques that guarantee that a given character is always represented by the same code points, but that subject takes us too far off the topic for now. A later blog post will explain how the Go libraries address normalization.
+したがって、コンピュータにおける文字の概念はあいまい、あるいは少なくともややこしく、そのため注意して扱うのです。
+安心して使えるように、ある文字が常に同じコードポイントで表現されるようにする正規化のテクニックがありますが、
+この記事の本題からは大きく外れてしまいます。後のブログエントリでGoのライブラリが正規化に対処しているかを説明しましょう。
 
-"Code point" is a bit of a mouthful, so Go introduces a shorter term for the concept: rune. The term appears in the libraries and source code, and means exactly the same as "code point", with one interesting addition.
+「コードポイント」はいささか呼びにくいので、Goではその概念を表すより短い用語である「ルーン (rune)」を導入しました。
+この用語はライブラリやソースコードに出てきますが、「コードポイント」とまったく同義です。さらにGoにおいてはもう1つの意味があります。
 
-The Go language defines the word rune as an alias for the type int32, so programs can be clear when an integer value represents a code point. Moreover, what you might think of as a character constant is called a rune constant in Go. The type and value of the expression
+Go言語では `rune` は `int32` のエイリアスとして定義しています。したがって、プログラムではある整数値がコードポイントを表しているかどうかを
+明確に区別することができます。さらに、Goでは、文字定数と思われているものは、ルーン定数になっています。
+次の表現の型と値は、
 
 ```
 '⌘'
 ```
 
-is rune with integer value `0x2318`.
+整数値 `0x2318` のルーンです。
 
-To summarize, here are the salient points:
+まとめると、次のような目立った特徴があります。
 
-* Go source code is always UTF-8.
-* A string holds arbitrary bytes.
-* A string literal, absent byte-level escapes, always holds valid UTF-8 sequences.
-* Those sequences represent Unicode code points, called runes.
-* No guarantee is made in Go that characters in strings are normalized.
+* Goのソースコードは常にUTF-8
+* 文字列は任意のバイトを保持できる
+* 文字列リテラルは、バイトレベルのエスケープがない場合、常に正しいUTF-8シーケンスを保持する
+* これらのシーケンスは、ルーンと呼ばれるUnicodeコードポイントを表している
+* Goでは、文字列内の文字が正規化されている保証はない
 
 ## Range loops
 
