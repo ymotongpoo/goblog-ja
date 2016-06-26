@@ -299,11 +299,14 @@ U+8A9E '語' starts at byte position 6
 
 （演習：文字列内に不正なUTF-8バイト列を入れてみましょう。（方法はだって？）ループの繰り返しで何が起きるでしょうか。）
 
-## Libraries
+## ライブラリ
 
-Go's standard library provides strong support for interpreting UTF-8 text. If a for range loop isn't sufficient for your purposes, chances are the facility you need is provided by a package in the library.
+Goの標準ライブラリではUTF-8文字列を解釈するための強力なサポートを提供しています。
+目的に対して `for range` ループでは不十分な場合には、おそらく必要なものはライブラリ内のパッケージで提供されているでしょう。
 
-The most important such package is [unicode/utf8](http://golang.org/pkg/unicode/utf8/), which contains helper routines to validate, disassemble, and reassemble UTF-8 strings. Here is a program equivalent to the for range example above, but using the DecodeRuneInString function from that package to do the work. The return values from the function are the rune and its width in UTF-8-encoded bytes.
+そのようなパッケージの中で最重要なものが [unicode/utf8](http://golang.org/pkg/unicode/utf8/) です。
+この中にUTF-8文字列を検証、分解、再構築するためのヘルパー関数があります。次の例は、先の `for range` ループの例と同じ処理をしますが、
+`unicode/utf-8` 内の `DecodeRuneInString` 関数を使っています。この関数の戻り値はルーンとUTF-8エンコードされたバイト幅です。
 
 ```
     const nihongo = "日本語"
@@ -314,9 +317,10 @@ The most important such package is [unicode/utf8](http://golang.org/pkg/unicode/
     }
 ```
 
-Run it to see that it performs the same. The for range loop and DecodeRuneInString are defined to produce exactly the same iteration sequence.
+実行して先の例と同じ結果になることを確認してみましょう。 `for range` ループと `DecodeRuneInString` はまったく同じ繰り返し処理を
+するように定義されています。
 
-Look at the [documentation](http://golang.org/pkg/unicode/utf8/) for the `unicode/utf8` package to see what other facilities it provides.
+`unicode/utf-8` パッケージの[ドキュメント](http://golang.org/pkg/unicode/utf8/)を見て、他の関数も見てみましょう。
 
 ## Conclusion
 
