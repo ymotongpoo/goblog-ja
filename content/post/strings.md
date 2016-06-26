@@ -273,11 +273,14 @@ Go言語では `rune` は `int32` のエイリアスとして定義していま�
 * これらのシーケンスは、ルーンと呼ばれるUnicodeコードポイントを表している
 * Goでは、文字列内の文字が正規化されている保証はない
 
-## Range loops
+## rangeループ
 
-Besides the axiomatic detail that Go source code is UTF-8, there's really only one way that Go treats UTF-8 specially, and that is when using a for range loop on a string.
+GoのソースコードはUTF-8であるという、自明のような詳細に加えて、GoがUTF-8を本当に特別に扱っている唯一の点は、文字列を `for range` ループ
+するときです。
 
-We've seen what happens with a regular for loop. A for range loop, by contrast, decodes one UTF-8-encoded rune on each iteration. Each time around the loop, the index of the loop is the starting position of the current rune, measured in bytes, and the code point is its value. Here's an example using yet another handy Printf format, %#U, which shows the code point's Unicode value and its printed representation:
+通常の `for` ループで何が起きるかはすでに見ています。対照的に `for range` ループでは、イテレーションごとに
+1つのUTF-8にエンコードされたルーンをデコードします。ループが回るごとに、ループのインデックスはバイト換算したときの現在のルーンの開始位置となり、値はそのルーン値のコードポイントとなります。これまで紹介したものとはまた別の便利な `Printf` 書式 `%#U` を使った例をお見せします。
+この書式では、Unicode値のコードポイントとその表現を表示します。
 
 ```
     const nihongo = "日本語"
@@ -286,7 +289,7 @@ We've seen what happens with a regular for loop. A for range loop, by contrast, 
     }
 ```
 
-The output shows how each code point occupies multiple bytes:
+これを出力すると、それぞれのコードポイントが複数のバイトから成っていることがわかります。
 
 ```
 U+65E5 '日' starts at byte position 0
@@ -294,7 +297,7 @@ U+672C '本' starts at byte position 3
 U+8A9E '語' starts at byte position 6
 ```
 
-[Exercise: Put an invalid UTF-8 byte sequence into the string. (How?) What happens to the iterations of the loop?]
+（演習：文字列内に不正なUTF-8バイト列を入れてみましょう。（方法はだって？）ループの繰り返しで何が起きるでしょうか。）
 
 ## Libraries
 
