@@ -9,11 +9,17 @@ tags = ["strings", "bytes", "runes", "characters"]
 
 [Text normalization in Go](https://blog.golang.org/normalization) by By Marcel van Lohuizen
 
-## Introduction
+## はじめに
 
-An earlier [post](http://blog.golang.org/strings) talked about strings, bytes and characters in Go. I've been working on various packages for multilingual text processing for the go.text repository. Several of these packages deserve a separate blog post, but today I want to focus on [go.text/unicode/norm](http://godoc.org/code.google.com/p/go.text/unicode/norm) , which handles normalization, a topic touched in the [strings article](./strings/) and the subject of this post. Normalization works at a higher level of abstraction than raw bytes.
+先の[記事](./strings/)では、Goでの文字列、バイト、文字について説明していました。
+私は`go.text` レポジトリ（訳注：現在は `golang.org/x/text` パッケージ群）で多言語文字列処理向けの様々なパッケージの開発に関わってきました。
+これらのパッケージのいくつかは別のブログポストに譲って、この記事では [go.text/unicode/norm](http://godoc.org/code.google.com/p/go.text/unicode/norm) （訳注：現在は [golang.org/x/text/unicode/norm](http://godoc.org/golang.org/x/text/unicode/norm)）に焦点を当てたいと思います。
+このパッケージは、先の[文字列に関する記事](./strings/)、そして本記事のタイトルとなっている、文字列の正規化を扱います。
+正規化は生のバイト列よりも高水準での抽象化を扱います。
 
-To learn pretty much everything you ever wanted to know about normalization (and then some), [Annex 15 of the Unicode Standard](http://unicode.org/reports/tr15/) is a good read. A more approachable article is the corresponding [Wikipedia page](http://en.wikipedia.org/wiki/Unicode_equivalence). Here we focus on how normalization relates to Go.
+正規化についてのすべてを知りたければ、[Unicode標準の付録15](http://unicode.org/reports/tr15/)を読むのが良いでしょう。
+より読みやすい記事としては、対応する[Wikipediaのページ](http://en.wikipedia.org/wiki/Unicode_equivalence)（訳注：[日本語版](https://ja.wikipedia.org/wiki/Unicode%E6%AD%A3%E8%A6%8F%E5%8C%96)）があります。
+ここでは、正規化がどのようにGoに関わっているかに焦点を当てます。
 
 ## What is normalization?
 
