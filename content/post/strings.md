@@ -1,11 +1,11 @@
 +++
 date = "2013-10-23T09:18:55+09:00"
 draft = false
-title = "strings"
+title = "Goにおける文字列、バイト、ルーンと文字 (Strings, bytes, runes and characters)"
 tags = ["strings", "bytes", "runes", "characters"]
 +++
 
-# Goにおける文字列、バイト、ルーンと文字 (Strings, bytes, runes and characters)
+# Goにおける文字列、バイト、ルーンと文字
 [Strings, bytes, runes and characters in Go](https://blog.golang.org/strings) By Rob Pike
 
 ## はじめに
