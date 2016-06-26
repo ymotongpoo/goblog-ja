@@ -1,6 +1,6 @@
 +++
 date = "2013-10-23T09:18:55+09:00"
-draft = true
+draft = false
 title = "strings"
 tags = ["strings", "bytes", "runes", "characters"]
 +++
@@ -322,10 +322,14 @@ Goの標準ライブラリではUTF-8文字列を解釈するための強力な�
 
 `unicode/utf-8` パッケージの[ドキュメント](http://golang.org/pkg/unicode/utf8/)を見て、他の関数も見てみましょう。
 
-## Conclusion
+## 結論
 
-To answer the question posed at the beginning: Strings are built from bytes so indexing them yields bytes, not characters. A string might not even hold characters. In fact, the definition of "character" is ambiguous and it would be a mistake to try to resolve the ambiguity by defining that strings are made of characters.
+はじめに投げかけた質問に答えましょう。文字列はバイトからなり、それゆえインデックスでアクセスするとその場所の文字ではなくバイトを返します。
+文字列は文字以外のものも保持します。事実、「文字」の定義は曖昧で、文字列は文字からできていると定義することで、その曖昧さを解決しようとする
+ことは間違いでしょう。
 
-There's much more to say about Unicode, UTF-8, and the world of multilingual text processing, but it can wait for another post. For now, we hope you have a better understanding of how Go strings behave and that, although they may contain arbitrary bytes, UTF-8 is a central part of their design.
+Unicode、UTF-8、多言語文字列処理の世界に関してはまだまだ語ることがたくさんありますが、それは他の記事に任せましょう。
+いまは、あなたがGoの文字列がどのように振る舞うかを理解し、任意のバイトを含むかもしれないとしても、UTF-8はGoの文字列の設計における中心
+であることの理解がより深まったことを願っています。
 
 By Rob Pike
