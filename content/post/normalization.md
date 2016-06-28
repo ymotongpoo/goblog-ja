@@ -21,20 +21,26 @@ tags = ["strings", "bytes", "runes", "characters"]
 より読みやすい記事としては、対応する[Wikipediaのページ](http://en.wikipedia.org/wiki/Unicode_equivalence)（訳注：[日本語版](https://ja.wikipedia.org/wiki/Unicode%E6%AD%A3%E8%A6%8F%E5%8C%96)）があります。
 ここでは、正規化がどのようにGoに関わっているかに焦点を当てます。
 
-## What is normalization?
+## 正規化とは何か
 
-There are often several ways to represent the same string. For example, an é (e-acute) can be represented in a string as a single rune ("\u00e9") or an 'e' followed by an acute accent ("e\u0301"). According to the Unicode standard, these two are "canonically equivalent" and should be treated as equal.
+同じ文字列を表現するときにいくつかの方法があることがしばしばあります。たとえば、é（eのアキュート）は文字列内で単一のルーン（"\u00e9"）または
+'e'のあとにアキュート・アクセントが続いたもの（"e\u0301"）として表現されます。Unicode標準によれば、この2つの表現はどちらも「正準等価」
+であり、同等に扱われるべきです。
 
-Using a byte-to-byte comparison to determine equality would clearly not give the right result for these two strings. Unicode defines a set of normal forms such that if two strings are canonically equivalent and are normalized to the same normal form, their byte representations are the same.
+これら2つの表現の等価性を調べるために1バイトごとに比較していたのでは正しい結果は導けません。Unicodeでは2つの表現が正準に等価で、
+同じ正規形に正規化される場合に、そのバイト表現が同じになるような正規形のセットを定義しています。
 
-Unicode also defines a "compatibility equivalence" to equate characters that represent the same characters, but may have a different visual appearance. For example, the superscript digit '⁹' and the regular digit '9' are equivalent in this form.
+またUnicodeでは同じ文字を表すけれども見た目が異なる表現を同等とみなす「互換等価」を定義しています。
+たとえば上付き文字の数字 '⁹' と通常の数字 '9' はこの形式では等価です。
 
-For each of these two equivalence forms, Unicode defines a composing and decomposing form. The former replaces runes that can combine into a single rune with this single rune. The latter breaks runes apart into their components. This table shows the names, all starting with NF, by which the Unicode Consortium identifies these forms:
+これら2つ等価な形式に対して、Unicodeでは合成と分解を定義しています。
+合成は、結合して1つのルーンにできる複数のルーンをその1つのルーンにい置きv換えることです。
+分解は、ルーンを要素に切り離すことを指します。すべてNFから始まる次の表は、Unicodeコンソーシアムが各形式を識別する際に使っているものです。v
 
-|                          |*Composing|*Decomposing|
-|:-------------------------|:---------|:-----------|
-|*Canonical equivalance    |NFC       |NFD         |
-|*Compatibility equivalance|NFKC      |NFKD        |
+|            |*合成      |*分解       |
+|:-----------|:---------|:-----------|
+|*正準等価    |NFC       |NFD         |
+|*互換等価    |NFKC      |NFKD        |
 
 ## Go's approach to normalization
 
