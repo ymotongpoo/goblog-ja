@@ -12,7 +12,7 @@ tags = ["strings", "bytes", "runes", "characters"]
 ## はじめに
 
 先の[記事](./strings/)では、Goでの文字列、バイト、文字について説明していました。
-私は`go.text` レポジトリ（訳注：現在は `golang.org/x/text` パッケージ群）で多言語文字列処理向けの様々なパッケージの開発に関わってきました。
+私は `go.text` レポジトリ（訳注：現在は `golang.org/x/text` パッケージ群、以下原文で `go.text` の部分は置き換える。）で多言語文字列処理向けの様々なパッケージの開発に関わってきました。
 これらのパッケージのいくつかは別のブログポストに譲って、この記事では [go.text/unicode/norm](http://godoc.org/code.google.com/p/go.text/unicode/norm) （訳注：現在は [golang.org/x/text/unicode/norm](http://godoc.org/golang.org/x/text/unicode/norm)）に焦点を当てたいと思います。
 このパッケージは、先の[文字列に関する記事](./strings/)、そして本記事のタイトルとなっている、文字列の正規化を扱います。
 正規化は生のバイト列よりも高水準での抽象化を扱います。
@@ -42,15 +42,27 @@ tags = ["strings", "bytes", "runes", "characters"]
 |*正準等価    |NFC       |NFD         |
 |*互換等価    |NFKC      |NFKD        |
 
-## Go's approach to normalization
+## Goの正規化に対するアプローチ
 
-As mentioned in the strings blog post, Go does not guarantee that characters in a string are normalized. However, the go.text packages can compensate. For example, the [collate](http://godoc.org/code.google.com/p/go.text/collate) package, which can sort strings in a language-specific way, works correctly even with unnormalized strings. The packages in go.text do not always require normalized input, but in general normalization may be necessary for consistent results.
+文字列に関する記事で言及したように、Goでは文字列内の文字が正規化されていることを保証していません。
+しかしながら、`golang.org/x/text` パッケージがそれを補填してくれます。
+たとえば [collate](http://godoc.org/golang.org/x/text/collate) パッケージは、Go言語特有の方法で文字列を順場に並べるパッケージで、
+これは正規化されていない文字列でも正しく動作します。
+`golang.org/x/text` 内のパッケージは必ずしも入力が正規化されている必要はありませんが、一般的に一貫した結果を得るためには
+正規化が必要でしょう。
 
-Normalization isn't free but it is fast, particularly for collation and searching or if a string is either in NFD or in NFC and can be converted to NFD by decomposing without reordering its bytes. In practice, 99.98% of the web's HTML page content is in NFC form (not counting markup, in which case it would be more). By far most NFC can be decomposed to NFD without the need for reordering (which requires allocation). Also, it is efficient to detect when reordering is necessary, so we can save time by doing it only for the rare segments that need it.
+正規化のコストはタダではないですが速いです。特に、照合や検索の場合、または文字列がNFDかNFCのいずれかで、バイトを並び替えなくても分解するだけで
+NFDになる場合は顕著です。実際に、99.98%のウェブ上のHTMLページのコンテンツはNFC形式です。（マークアップは含めていません。
+含めた場合はその割合はより大きくなります。）ほぼ間違いなくたいていのNFCは（メモリの確保を必要とする）並び替えの必要なく分解するだけでNFDになります。
+また、並び替えが必要な場合の検出も効率的なので、それが必要なまれな区画に対してだけ並び替えを行うことで時間を節約することが出来ます。
 
-To make things even better, the collation package typically does not use the norm package directly, but instead uses the norm package to interleave normalization information with its own tables. Interleaving the two problems allows for reordering and normalization on the fly with almost no impact on performance. The cost of on-the-fly normalization is compensated by not having to normalize text beforehand and ensuring that the normal form is maintained upon edits. The latter can be tricky. For instance, the result of concatenating two NFC-normalized strings is not guaranteed to be in NFC.
+より効率よくするために、照合（collate）のパッケージは通常は `norm` パッケージを直接は使わず、代わりに自身が持っている表の中に
+正規化に関する情報をインタリーブするために `norm` パッケージを使います。
+並び替えと正規化をインタリーブすることで、パフォーマンスに影響をあたえることなくその場で実行することが可能になります。
+オンザフライでの正規化のコストは事前に事前に文字列を正規化する必要がないことで補償され、編集時には正規化形式になっていることを保証します。
+特に後者は厄介です。たとえば、2つのNFCで正規化された文字を合成してもNFCになるとは限らないからです。
 
-Of course, we can also avoid the overhead outright if we know in advance that a string is already normalized, which is often the case
+もちろん、よくあることですが、事前に文字列が正規化済みであることがわかっているのであれば、明白なオーバーヘッドは避けるべきでもあります。
 
 ## Why bother?
 
