@@ -37,10 +37,10 @@ tags = ["strings", "bytes", "runes", "characters"]
 合成は、結合して1つのルーンにできる複数のルーンをその1つのルーンにい置きv換えることです。
 分解は、ルーンを要素に切り離すことを指します。すべてNFから始まる次の表は、Unicodeコンソーシアムが各形式を識別する際に使っているものです。v
 
-|            |*合成      |*分解       |
+|            |**合成**   |**分解**     |
 |:-----------|:---------|:-----------|
-|*正準等価    |NFC       |NFD         |
-|*互換等価    |NFKC      |NFKD        |
+|**正準等価** |NFC       |NFD         |
+|**互換等価** |NFKC      |NFKD        |
 
 ## Goの正規化に対するアプローチ
 
@@ -71,9 +71,13 @@ NFDになる場合は顕著です。実際に、99.98%のウェブ上のHTMLペ�
 
 これらについて議論する前に、まず「文字」という概念を明確にしなければなりません。
 
-## What is a character?
+## 文字とは何か
 
-As was mentioned in the strings blog post, characters can span multiple runes. For example, an 'e' and '◌́' (acute "\u0301") can combine to form 'é' ("e\u0301" in NFD).  Together these two runes are one character. The definition of a character may vary depending on the application. For normalization we will define it as a sequence of runes that starts with a starter, a rune that does not modify or combine backwards with any other rune, followed by possibly empty sequence of non-starters, that is, runes that do (typically accents). The normalization algorithm processes one character at at time.
+文字列に関する記事で説明したとおり、文字は複数のルーンに渡ることがあります。たとえば 'e' と '◌́'（アキュート "\u0301"）は合成して
+'é' という形式（NFDでは "e\u0301" ）になります。この2つのルーンをまとめて1つの文字を表しています。
+文字の定義は実装によって変わります。正規化においては文字を、他のルーンを変更したり後ろ向きに合成しないルーンと定義した開始ルーンから始まり、
+（通常はアクセントなどの）修飾などを行う後続ルーンによるルーン列として定義しています。後続ルーンの列は空になりえます。
+正規化アルゴリズムは一度に1文字を処理します。
 
 Theoretically, there is no bound to the number of runes that can make up a Unicode character. In fact, there are no restrictions on the number of modifiers that can follow a character and a modifier may be repeated, or stacked. Ever seen an 'e' with three acutes? Here you go: 'é́́'. That is a perfectly valid 4-rune character according to the standard.
 
