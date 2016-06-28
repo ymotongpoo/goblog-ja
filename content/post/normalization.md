@@ -64,11 +64,12 @@ NFDになる場合は顕著です。実際に、99.98%のウェブ上のHTMLペ�
 
 もちろん、よくあることですが、事前に文字列が正規化済みであることがわかっているのであれば、明白なオーバーヘッドは避けるべきでもあります。
 
-## Why bother?
+## 何が困るのか
 
-After all this discussion about avoiding normalization, you might ask why it's worth worrying about at all. The reason is that there are cases where normalization is required and it is important to understand what those are, and in turn how to do it correctly.
+これまで正規化をできれば避けたいという話をしてきましたが、そもそもなぜそれが懸念事項になるのか疑問の人もいるでしょう。
+その理由は、正規化が必要で、正規化が何か、そして正規化を正しくする方法を理解することが重要である場合があるからです。
 
-Before discussing those, we must first clarify the concept of 'character'.
+これらについて議論する前に、まず「文字」という概念を明確にしなければなりません。
 
 ## What is a character?
 
