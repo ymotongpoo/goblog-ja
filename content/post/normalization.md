@@ -79,15 +79,26 @@ NFDになる場合は顕著です。実際に、99.98%のウェブ上のHTMLペ�
 （通常はアクセントなどの）修飾などを行う後続ルーンによるルーン列として定義しています。後続ルーンの列は空になりえます。
 正規化アルゴリズムは一度に1文字を処理します。
 
-Theoretically, there is no bound to the number of runes that can make up a Unicode character. In fact, there are no restrictions on the number of modifiers that can follow a character and a modifier may be repeated, or stacked. Ever seen an 'e' with three acutes? Here you go: 'é́́'. That is a perfectly valid 4-rune character according to the standard.
+理論上は1つのUnicode文字を作る上でのルーン数には上限はありません。事実、文字に続く修飾の数、その繰り返しの数、修飾の重ねあわせには
+上限がありません。 'e' に3つアキュートが付いたものを見たことがありますか。これです。'é́́' これは、標準上は完全に正しい4ルーンの文字です。 
 
-As a consequence, even at the lowest level, text needs to be processed in increments of unbounded chunk sizes. This is especially awkward with a streaming approach to text processing, as used by Go's standard Reader and Writer interfaces, as that model potentially requires any intermediate buffers to have unbounded size as well. Also, a straightforward implementation of normalization will have a O(n²) running time.
+結果として、最下層においても、文字列は無制限のチャンクサイズの積み重ねの中で処理が行われる必要があります。
+特にこれは、Go標準の `Reader` や `Writer` のインターフェースのように、文字列処理をストリームで取り組むときに扱いづらくなります。
+なぜなら、このモデルでは潜在的に無制限のサイズを保持するための中間バッファーも持つ必要もあるからです。
+また、率直に正規化を実装すると、処理が O(n²) になってしまいます。
 
-There are really no meaningful interpretations for such large sequences of modifiers for practical applications. Unicode defines a Stream-Safe Text format, which allows capping the number of modifiers (non-starters) to at most 30, more than enough for any practical purpose. Subsequent modifiers will be placed after a freshly inserted Combining Grapheme Joiner (CGJ or U+034F). Go adopts this approach for all normalization algorithms. This decision gives up a little conformance but gains a little safety.
+実際に適用する場合には、このような大きな修飾のシーケンスを意味のある形で解釈することはありません。
+Unicodeでは Stream-Safe Text format（ストリーム安全な文字列形式）を定義しています。
+これは修飾（後続ルーン）の数の上限を最大で30に定めていて、この数は実用では十分な大きさです。
+それ以降の修飾はまとめられて、結合書記素結合子（Combining Grapheme Joiner, CGJ, U+034F）に置き換えられます。
+この決定によって、原文との一致性は少し下がりますが、より安全に処理できるようになります。
 
-## Writing in normal form
+## 正規化形式で書く
 
-Even if you don't need to normalize text within your Go code, you might still want to do so when communicating to the outside world. For example, normalizing to NFC might compact your text, making it cheaper to send down a wire. For some languages, like Korean, the savings can be substantial. Also, some external APIs might expect text in a certain normal form. Or you might just want to fit in and output your text as NFC like the rest of the world.
+Goのコード内で正規化をする必要がない場合でもなお、外部とやり取りするときにはそうしたくなる場合があるでしょう。
+たとえば、NFCに正規化すると文字列を小さくでき、送信するコストを小さくすることが出来ます。
+ある言語、たとえば韓国語では、データを小さくすることは有用です。また、外部のAPIが特定の正規化形式を期待している場合もあります。
+あるいは、外部のシステムと同様に、ただ正規化してNFC形式にしたい場合もあるでしょう。
 
 To write your text as NFC, use the [unicode/norm](http://godoc.org/code.google.com/p/go.text/unicode/norm) package to wrap your io.Writer of choice:
 
