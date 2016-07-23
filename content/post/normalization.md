@@ -100,27 +100,33 @@ Goのコード内で正規化をする必要がない場合でもなお、外部
 ある言語、たとえば韓国語では、データを小さくすることは有用です。また、外部のAPIが特定の正規化形式を期待している場合もあります。
 あるいは、外部のシステムと同様に、ただ正規化してNFC形式にしたい場合もあるでしょう。
 
-To write your text as NFC, use the [unicode/norm](http://godoc.org/code.google.com/p/go.text/unicode/norm) package to wrap your io.Writer of choice:
+文字列をNFCとして書くには、[unicode/norm](http://godoc.org/code.google.com/p/go.text/unicode/norm)パッケージで
+`io.Writer`をラップして使うのが良いでしょう。
 
 ```
 wc := norm.NFC.Writer(w)
 defer wc.Close()
-// write as before...
+// 通常と同様にwriteする
 ```
 
-If you have a small string and want to do a quick conversion, you can use this simpler form:
+短い文字列を手早く変換したい場合は、この簡単な形式でも良いでしょう。
 
 ```
 norm.NFC.Bytes(b)
 ```
 
-Package norm provides various other methods for normalizing text. Pick the one that suits your needs best.
+`norm` パッケージは文字列の正規化のために他にも様々なメソッドを用意しています。
+必要に応じて最適なものを選んでください。
 
-## Catching look-alikes
+## 類似した文字を見つける
 
-Can you tell the difference between 'K' ("\u004B") and 'K' (Kelvin sign "\u212A") or 'Ω' ("\u03a9") and 'Ω' (Ohm sign "\u2126")? It is easy to overlook the sometimes minute differences between variants of the same underlying character. It is generally a good idea to disallow such variants in identifiers or anything where deceiving users with such look-alikes can pose a security hazard.
+'K'（"\u004B"）と 'K'（ケルビン記号 "\u212A"）あるいは 'Ω'（"\u03a9"）と 'Ω'（オーム記号 "\u2126"）の違いがわかりますか。
+根本的には同じ文字の異形での細かな差異は、見逃しやすいものです。そのような異形を識別子やそのような類似した文字でユーザを惑わしすことが
+セキュリティの危険性を晒すような場所で用いることを禁止するのは良い考えです。
 
-The compatibility normal forms, NFKC and NFKD, will map many visually nearly identical forms to a single value. Note that it will not do so when two symbols look alike, but are really from two different alphabets. For example the Latin 'o', Greek 'ο', and Cyrillic 'о' are still different characters as defined by these forms.
+NFKCやNFKDというような標準系は見た目が近い同一の形式を一つの値に対応させます。
+2つのシンボルの見た目が似ていても、実際に異なるアルファベットの場合はこのような対応はしないことに注意してください。
+たとえば、ラテン文字の 'o'、ギリシャ文字の 'ο'、キリル文字の 'о' は依然として、これらの標準系で定義されたように異なる文字です。 
 
 ## Correct text modifications
 
