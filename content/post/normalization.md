@@ -180,9 +180,12 @@ fmt.Println(s)
 他に `norm` パッケージより提供されている、文字列の境界を扱う上で便利な機能にはイテレータがあります。内容は [norm.Iter](http://godoc.org/golang.org/x/text/unicode/norm#Iter) で確認してください。
 これは選択した正規化形式での文字を1つずつイテレーションしていきます。
 
-## Performing magic
+## 技を披露する
 
-As mentioned earlier, most text is in NFC form, where base characters and modifiers are combined into a single rune whenever possible.  For the purpose of analyzing characters, it is often easier to handle runes after decomposition into their smallest components. This is where the NFD form comes in handy. For example, the following piece of code creates a transform.Transformer that decomposes text into its smallest parts, removes all accents, and then recomposes the text into NFC:
+先にも述べたように、たいていの文字列はNFC形式で、このとき可能な限り土台の文字と修飾子は合成されて1つのルーンにされます。
+文字を解析する場合には、しばしばルーンを最小限の要素に分解した後のほうが扱いやすいことがあります。
+このようなときNFD形式が便利です。たとえば、次のスニペットでは文字列を最小限の部品に分解し、
+アクセント記号をすべて取り除き、再度文字列をNFC形式に合成する `transform.Transformer` を作成します。
 
 ```
 import (
@@ -198,14 +201,14 @@ isMn := func(r rune) bool {
 t := transform.Chain(norm.NFD, transform.RemoveFunc(isMn), norm.NFC)
 ```
 
-The resulting Transformer can be used to remove accents from an io.Reader of choice as follows:
+ここで作成された `Transformer` は、次のように `io.Reader` 内のアクセントを取り除くために使うことが出来ます。
 
 ```
 r = transform.NewReader(r, t)
-// read as before ...
+// 通常と同様にreadする
 ```
 
-This will, for example, convert any mention of "cafés" in the text to "cafes", regardless of the normal form in which the original text was encoded.
+たとえば、このコードは、元の文字列がどのように正規化されていても、すべての "cafés" を "cafes" に変換します。 
 
 ## Normalization info
 
