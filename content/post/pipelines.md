@@ -652,10 +652,11 @@ By Sameer Ajmani
 
 ## あわせて読みたい
 * [Go Concurrency Patterns: Context](https://blog.golang.org/context)
-  * [Goの並行パターン：コンテキスト (Go Concurrency Pattern: Context)](../context/)
+  * [Goの並行パターン：コンテキスト (Go Concurrency Pattern: Context)](./context/)
 * [Introducing the Go Race Detector](https://blog.golang.org/race-detector)
 * [Advanced Go Concurrency Patterns](https://blog.golang.org/advanced-go-concurrency-patterns)
 * [Concurrency is not parallelism](https://blog.golang.org/concurrency-is-not-parallelism)
 * [Go videos from Google I/O 2012](https://blog.golang.org/go-videos-from-google-io-2012)
 * [Go Concurrency Patterns: Timing out, moving on](https://blog.golang.org/go-concurrency-patterns-timing-out-and)
+  * [Goの並行パターン：タイムアウトと進行](./go-concurrency-patterns-timing-out-and/)
 * [Share Memory By Communicating](https://blog.golang.org/share-memory-by-communicating)

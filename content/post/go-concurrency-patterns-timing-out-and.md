@@ -1,6 +1,6 @@
 +++
 date = "2010-09-23T15:02:14+09:00"
-draft = true
+draft = false
 title = "Goの並行パターン：タイムアウトと進行（Go Concurrency Patterns: Timing out, moving on）"
 tags = ["concurrency", "technical"]
 +++
