@@ -9,7 +9,10 @@ tags = ["concurrency", "technical"]
 
 [Go Concurrency Patterns: Timing out, moving on](https://blog.golang.org/go-concurrency-patterns-timing-out-and) by Andrew Gerrand
 
-Concurrent programming has its own idioms. A good example is timeouts. Although Go's channels do not support them directly, they are easy to implement. Say we want to receive from the channel ch, but want to wait at most one second for the value to arrive. We would start by creating a signalling channel and launching a goroutine that sleeps before sending on the channel:
+並行プログラミングにはイディオムがあります。良い例はタイムアウトです。
+Goのチャンネルではタイムアウトを直接はサポートしていませんが、その実装は容易です。
+たとえば、`ch` チャンネルから値を受信したいけれど、1秒以上は待ちたくないという状況を考えてみましょう。
+まずシグナル用のチャンネルを作り、そのチャンネルに送信する前に1秒待つゴルーチンを起動します。
 
 ```
 timeout := make(chan bool, 1)
@@ -19,24 +22,31 @@ go func() {
 }()
 ```
 
-We can then use a select statement to receive from either ch or timeout. If nothing arrives on ch after one second, the timeout case is selected and the attempt to read from ch is abandoned.
+その後、`select`構文を使って `ch` か `timeout` を待つようにします。
+もし1秒待っても `ch` から何も来なければ、 `timeout` のケースが選択され、`ch`からの読み込みは破棄されます。
 
 ```
 select {
 case <-ch:
-    // a read from ch has occurred
+    // chから読み込む
 case <-timeout:
-    // the read from ch has timed out
+    // chからの読み込みはタイムアウト
 }
 ```
 
-The timeout channel is buffered with space for 1 value, allowing the timeout goroutine to send to the channel and then exit. The goroutine doesn't know (or care) whether the value is received. This means the goroutine won't hang around forever if the ch receive happens before the timeout is reached. The timeout channel will eventually be deallocated by the garbage collector.
+`timeout` チャンネルは1つの値をバッファし、タイムアウトのゴルーチンがそのチャンネルに値を送り、終了できるようになっています。
+このゴルーチンは、`ch`から値が受け取られたかを知りません。（あるいは気にしていません）
+つまりこのゴルーチンは`ch`からの読み込みがタイムアウトより前に起こったとしても、永遠には存在しえません。
+`timeout` チャンネルは最終的にガベージコレクタによって回収されます。
 
-(In this example we used time.Sleep to demonstrate the mechanics of goroutines and channels. In real programs you should use ` time.After`, a function that returns a channel and sends on that channel after the specified duration.)
+（この例ではゴルーチンとチャンネルの機構をデモするために `time.Sleep` を使いました。
+実際のプログラムでは `time.After` という、チャンネルを返し、決まった時間のあとにそのチャンネルに値を送る関数を使うべきでしょう。）
 
-Let's look at another variation of this pattern. In this example we have a program that reads from multiple replicated databases simultaneously. The program needs only one of the answers, and it should accept the answer that arrives first.
+このパターンの他の例を見てみましょう。この例では複数のレプリケーションされたデータベースから同時に読み込むプログラムを扱っています。
+このプログラムでは、値は1つだけ必要で最初に来た値だけを取得すべきです。
 
-The function Query takes a slice of database connections and a query string. It queries each of the databases in parallel and returns the first response it receives:
+`Query` 関数はデータベース接続のスライスと問い合わせの文字列を引数に取ります。
+この関数は各データベースに並列に問い合わせ、最初に受信した結果を返します。
 
 ```
 func Query(conns []Conn, query string) Result {
@@ -53,11 +63,16 @@ func Query(conns []Conn, query string) Result {
 }
 ```
 
-In this example, the closure does a non-blocking send, which it achieves by using the send operation in select statement with a default case. If the send cannot go through immediately the default case will be selected. Making the send non-blocking guarantees that none of the goroutines launched in the loop will hang around. However, if the result arrives before the main function has made it to the receive, the send could fail since no one is ready.
+この例では、クロージャーがノンブロッキングに送信します。これは、 `default` ケース付きの `select` 構文内の送信操作を使うことで実現しています。
+もし送信が出来なければ、直ちに `default` ケースが選択されます。
+送信をノンブロッキングにすることで、ループ内で立ち上げられたゴルーチンが1つも無駄に生存しないことが保証されます。
+しかしながら、親の関数が値を受信する前に結果が来れば、チャンネルのバッファの準備ができていないため送信は失敗する可能性があります。
 
-This problem is a textbook example of what is known as a race condition, but the fix is trivial. We just make sure to buffer the channel ch (by adding the buffer length as the second argument to make), guaranteeing that the first send has a place to put the value. This ensures the send will always succeed, and the first value to arrive will be retrieved regardless of the order of execution.
+この問題は[競合条件](https://en.wikipedia.org/wiki/Race_condition)として知られるものの教科書的な例ですが、修正は些細なものです。
+`ch` チャンネルを（バッファの長さをmakeの第2引数に加えることで）バッファして、最初の送信処理が値を送れるように保証すれば良いだけです。
+これによって送信処理は常に成功し、実行順に関係なく最初に到着した値が受信されるようになります。
 
-These two examples demonstrate the simplicity with which Go can express complex interactions between goroutines.
+この2つの例はGoがゴルーチン間の複雑なやりとりを表現する際の簡潔さを表しています。
 
 By Andrew Gerrand
 
