@@ -217,18 +217,24 @@ r = transform.NewReader(r, t)
 特筆すべきは正規結合クラス（Canonical Combining Class）と分解情報にアクセスできる点です。
 この型の詳細を知りたい方は [ドキュメント](http://godoc.org/golang.org/x/text/unicode/norm/#Properties) を読んでください。
 
-## Performance
+## パフォーマンス
 
-To give an idea of the performance of normalization, we compare it against the performance of strings.ToLower. The sample in the first row is both lowercase and NFC and can in every case be returned as is. The second sample is neither and requires writing a new version.
+正規化のパフォーマンスを理解してもらうために、 `strings.ToLower` のパフォーマンスと比較してみましょう。
+次の表の1行目はすべて小文字でNFCになっており、すべての文字はそのまま返されます。
+2行目のサンプルは大文字も混じりNFCでない文字も含まれていて、変換が必要になります。
 
-|*Input              |*ToLower|*NFC Append|*NFC Transform|*NFC Iter       |
+|*入力                |*ToLower|*NFC追加    |*NFC変換      |*NFCイテレーション |
 |:-------------------|:-------|:----------|:-------------|:---------------|
 |nörmalization       |199 ns  |137 ns     |133 ns        |251 ns (621 ns) |
 |No\u0308rmalization |427 ns  |836 ns     |845 ns        |573 ns (948 ns) |
 
-The column with the results for the iterator shows both the measurement with and without initialization of the iterator, which contain buffers that don't need to be reinitialized upon reuse.
+イテレータの結果に関する列ではイテレータの初期化をすでにしている場合としていない場合の両方の計測結果を表示しています。
+初期化をした場合は次回以降のイテレーションではバッファを再利用することが出来ます。
 
-As you can see, detecting whether a string is normalized can be quite efficient. A lot of the cost of normalizing in the second row is for the initialization of buffers, the cost of which is amortized when one is processing larger strings. As it turns out, these buffers are rarely needed, so we may change the implementation at some point to speed up the common case for small strings even further.
+ごらんの通り、文字列が正規化されているかどうかは非常に効率的に判断されています。
+2行目の正規化のコストはバッファの初期化によるものが大きく、そのコストは大きな文字列を扱う際にはならされます。
+これらのバッファはあまり必要ないとわかってきたので、よく使われる小さい文字列の場合にもっと高速化できるように、
+いずれ実装を変更するかもしれません。
 
 ## Conclusion
 
