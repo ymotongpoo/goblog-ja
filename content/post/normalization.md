@@ -210,9 +210,12 @@ r = transform.NewReader(r, t)
 
 たとえば、このコードは、元の文字列がどのように正規化されていても、すべての "cafés" を "cafes" に変換します。 
 
-## Normalization info
+## 正規化の情報
 
-As mentioned earlier, some packages precompute normalizations into their tables to minimize the need for normalization at run time. The type norm.Properties provides access to the per-rune information needed by these packages, most notably the Canonical Combining Class and decomposition information. Read the [documentation](http://godoc.org/code.google.com/p/go.text/unicode/norm/#Properties) for this type if you want to dig deeper.
+先に述べたように、パッケージによっては正規化を事前に計算してテーブルに保存し、ランタイムでの正規化を必要最低限にします。
+`norm.Properties` 型はこれらのパッケージに必要なルーン毎の情報にアクセスできるようにしています。
+特筆すべきは正規結合クラス（Canonical Combining Class）と分解情報にアクセスできる点です。
+この型の詳細を知りたい方は [ドキュメント](http://godoc.org/golang.org/x/text/unicode/norm/#Properties) を読んでください。
 
 ## Performance
 
