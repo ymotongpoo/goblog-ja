@@ -175,9 +175,10 @@ fmt.Println(s)
 一般的にこのような問題は文字の境界を認識している検索機能（`golang.org/x/text` パッケージとして計画されているようなもの）を使うことで
 避けることが出来ます。
 
-## Iteration
+## イテレーション
 
-Another tool provided by the norm package that may help dealing with character boundaries is its iterator, [norm.Iter](http://godoc.org/code.google.com/p/go.text/unicode/norm#Iter). It iterates over characters one at a time in the normal form of choice.
+他に `norm` パッケージより提供されている、文字列の境界を扱う上で便利な機能にはイテレータがあります。内容は [norm.Iter](http://godoc.org/golang.org/x/text/unicode/norm#Iter) で確認してください。
+これは選択した正規化形式での文字を1つずつイテレーションしていきます。
 
 ## Performing magic
 
