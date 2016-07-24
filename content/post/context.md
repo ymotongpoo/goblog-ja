@@ -344,5 +344,5 @@ By Sameer Ajmani
 * [Concurrency is not parallelism](http://blog.golang.org/concurrency-is-not-parallelism)
 * [Go videos from Google I/O 2012](http://blog.golang.org/go-videos-from-google-io-2012)
 * [Go Concurrency Patterns: Timing out, moving on](http://blog.golang.org/go-concurrency-patterns-timing-out-and)
-  * [Goの並行パターン：タイムアウトと進行](./go-concurrency-patterns-timing-out-and/)
+  * [Goの並行パターン：タイムアウトと進行](../go-concurrency-patterns-timing-out-and/)
 * [Share Memory By Communicating](http://blog.golang.org/share-memory-by-communicating)

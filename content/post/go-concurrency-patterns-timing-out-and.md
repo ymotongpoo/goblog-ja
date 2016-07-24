@@ -78,11 +78,11 @@ By Andrew Gerrand
 
 ## あわせて読みたい
 * [Generating code](https://blog.golang.org/generate)
-  * [コードのジェネレート](./generate/)
+  * [コードのジェネレート](../generate/)
 * [Go Concurrency Patterns: Context](https://blog.golang.org/context)
-  * [Goの並行パターン：コンテキスト](./context/)
+  * [Goの並行パターン：コンテキスト](../context/)
 * [Go Concurrency Patterns: Pipelines and cancellation](https://blog.golang.org/pipelines)
-  * [Goの並行パターン：パイプラインとキャンセル](./pipelines/)
+  * [Goの並行パターン：パイプラインとキャンセル](../pipelines/)
 * [Introducing the Go Race Detector](https://blog.golang.org/race-detector)
 * [Advanced Go Concurrency Patterns](https://blog.golang.org/advanced-go-concurrency-patterns)
 * [Go maps in action](https://blog.golang.org/go-maps-in-action)

@@ -250,5 +250,5 @@ By Marcel van Lohuizen
 ## あわせて読みたい
 
 * [Strings, bytes, runes and characters in Go](https://blog.golang.org/strings)
-  * [Goにおける文字列、バイト、ルーンと文字](./strings/)
+  * [Goにおける文字列、バイト、ルーンと文字](../strings/)
 
