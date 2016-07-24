@@ -128,9 +128,11 @@ NFKCやNFKDというような標準系は見た目が近い同一の形式を一
 2つのシンボルの見た目が似ていても、実際に異なるアルファベットの場合はこのような対応はしないことに注意してください。
 たとえば、ラテン文字の 'o'、ギリシャ文字の 'ο'、キリル文字の 'о' は依然として、これらの標準系で定義されたように異なる文字です。 
 
-## Correct text modifications
+## 文字列の変更を訂正する
 
-The norm package might also come to the rescue when one needs to modify text. Consider a case where you want to search and replace the word "cafe" with its plural form "cafes".  A code snippet could look like this.
+`norm` パッケージは文字列を修正する必要があるときにも助けになってくれます。
+"cafe" という単語を複数形の "cafes" に置換したい状況を考えてみましょう。
+コードスニペットは次のようになります。
 
 ```
 s := "We went to eat at multiple cafe"
@@ -142,15 +144,18 @@ if p := strings.Index(s, cafe); p != -1 {
 fmt.Println(s)
 ```
 
-This prints "We went to eat at multiple cafes" as desired and expected. Now consider our text contains the French spelling "café" in NFD form:
+このスニペットの出力は期待通り "We went to eat at multiple cafes" と表示されます。
+それでは、NFD形式で書かれたフランス語の綴りである "café" を含む文字列を考えてみましょう。
 
 ```
 s := "We went to eat at multiple cafe\u0301"
 ```
 
-Using the same code from above, the plural "s" would still be inserted after the 'e', but before the acute, resulting in  "We went to eat at multiple cafeś".  This behavior is undesirable.
+先程と同じスニペットを使うと、同じく複数形の "s" は 'e' の後に挿入されますが、アキュートの前に挿入されてしまいます。
+結果は "We went to eat at multiple cafeś" となります。これは期待した結果ではありません。
 
-The problem is that the code does not respect the boundaries between multi-rune characters and inserts a rune in the middle of a character.  Using the norm package, we can rewrite this piece of code as follows:
+このコードが複数のルーンを使った文字の境界を反映せずに、文字の真ん中にルーンを挿入してしまうことが問題です。
+`norm` パッケージを用いて、先ほどのスニペットを次のように書き換えることが出来ます。
 
 ```
 s := "We went to eat at multiple cafe\u0301"
@@ -165,7 +170,10 @@ if p := strings.Index(s, cafe); p != -1 {
 fmt.Println(s)
 ```
 
-This may be a contrived example, but the gist should be clear. Be mindful of the fact that characters can span multiple runes. Generally these kinds of problems can be avoided by using search functionality that respects character boundaries (such as the planned go.text/search package.)
+この例は作為的なものですが、このコード片がやろうとしていることは明らかでしょう。
+文字は複数のルーンから構成されうるという事実を意識しましょう。
+一般的にこのような問題は文字の境界を認識している検索機能（`golang.org/x/text` パッケージとして計画されているようなもの）を使うことで
+避けることが出来ます。
 
 ## Iteration
 
