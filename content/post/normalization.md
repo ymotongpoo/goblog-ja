@@ -1,6 +1,6 @@
 +++
 date = "2013-11-26T10:49:22+09:00"
-draft = true
+draft = false
 title = "Goでの文字列の正規化 (Text normalization in Go)"
 tags = ["strings", "bytes", "runes", "characters"]
 +++
@@ -236,11 +236,14 @@ r = transform.NewReader(r, t)
 これらのバッファはあまり必要ないとわかってきたので、よく使われる小さい文字列の場合にもっと高速化できるように、
 いずれ実装を変更するかもしれません。
 
-## Conclusion
+## 結論
 
-If you're dealing with text inside Go, you generally do not have to use the unicode/norm package to normalize your text. The package may still be useful for things like ensuring that strings are normalized before sending them out or to do advanced text manipulation.
+あなたがGoのプログラム内で文字列を扱っているのであれば、通常は文字列の正規化に `unicode/norm` パッケージを使う必要ありません。
+このパッケージは文字列を外のシステムに送るとき、あるいはより発展的な文字列処理をしたいときに、文字列が確実に正規化されているように
+したい場合には便利です。
 
-This article briefly mentioned the existence of other go.text packages as well as multilingual text processing and it may have raised more questions than it has given answers. The discussion of these topics, however, will have to wait until another day.
+この記事では多言語文字列処理と同時に他の `golang.org/x/text` のパッケージについても簡単に触れまいた。
+そしてこの記事で理解したものの数よりも多くの疑問が湧いてきことでしょう。しかしながら、この話題に関する議論はまたの機会にしましょう。
 
 By Marcel van Lohuizen
 
