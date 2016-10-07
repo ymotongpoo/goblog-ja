@@ -339,9 +339,10 @@ By Sameer Ajmani
 
 * [Go Concurrency Patterns: Pipelines and cancellation](http://blog.golang.org/pipelines)
   * [Goの並行パターン：パイプラインとキャンセル (Go Concurrency Pattern: Pipelines and cancellation)](../pipelines/)
-* [http://blog.golang.org/race-detector](http://blog.golang.org/race-detector)
+* [Introducing the Go Race Detector](http://blog.golang.org/race-detector)
 * [Advanced Go Concurrency Patterns](http://blog.golang.org/advanced-go-concurrency-patterns)
 * [Concurrency is not parallelism](http://blog.golang.org/concurrency-is-not-parallelism)
 * [Go videos from Google I/O 2012](http://blog.golang.org/go-videos-from-google-io-2012)
 * [Go Concurrency Patterns: Timing out, moving on](http://blog.golang.org/go-concurrency-patterns-timing-out-and)
+  * [Goの並行パターン：タイムアウトと進行](../go-concurrency-patterns-timing-out-and/)
 * [Share Memory By Communicating](http://blog.golang.org/share-memory-by-communicating)

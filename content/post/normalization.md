@@ -1,6 +1,6 @@
 +++
 date = "2013-11-26T10:49:22+09:00"
-draft = true
+draft = false
 title = "Goでの文字列の正規化 (Text normalization in Go)"
 tags = ["strings", "bytes", "runes", "characters"]
 +++
@@ -100,31 +100,39 @@ Goのコード内で正規化をする必要がない場合でもなお、外部
 ある言語、たとえば韓国語では、データを小さくすることは有用です。また、外部のAPIが特定の正規化形式を期待している場合もあります。
 あるいは、外部のシステムと同様に、ただ正規化してNFC形式にしたい場合もあるでしょう。
 
-To write your text as NFC, use the [unicode/norm](http://godoc.org/code.google.com/p/go.text/unicode/norm) package to wrap your io.Writer of choice:
+文字列をNFCとして書くには、[unicode/norm](http://godoc.org/code.google.com/p/go.text/unicode/norm)パッケージで
+`io.Writer`をラップして使うのが良いでしょう。
 
 ```
 wc := norm.NFC.Writer(w)
 defer wc.Close()
-// write as before...
+// 通常と同様にwriteする
 ```
 
-If you have a small string and want to do a quick conversion, you can use this simpler form:
+短い文字列を手早く変換したい場合は、この簡単な形式でも良いでしょう。
 
 ```
 norm.NFC.Bytes(b)
 ```
 
-Package norm provides various other methods for normalizing text. Pick the one that suits your needs best.
+`norm` パッケージは文字列の正規化のために他にも様々なメソッドを用意しています。
+必要に応じて最適なものを選んでください。
 
-## Catching look-alikes
+## 類似した文字を見つける
 
-Can you tell the difference between 'K' ("\u004B") and 'K' (Kelvin sign "\u212A") or 'Ω' ("\u03a9") and 'Ω' (Ohm sign "\u2126")? It is easy to overlook the sometimes minute differences between variants of the same underlying character. It is generally a good idea to disallow such variants in identifiers or anything where deceiving users with such look-alikes can pose a security hazard.
+'K'（"\u004B"）と 'K'（ケルビン記号 "\u212A"）あるいは 'Ω'（"\u03a9"）と 'Ω'（オーム記号 "\u2126"）の違いがわかりますか。
+根本的には同じ文字の異形での細かな差異は、見逃しやすいものです。そのような異形を識別子やそのような類似した文字でユーザを惑わしすことが
+セキュリティの危険性を晒すような場所で用いることを禁止するのは良い考えです。
 
-The compatibility normal forms, NFKC and NFKD, will map many visually nearly identical forms to a single value. Note that it will not do so when two symbols look alike, but are really from two different alphabets. For example the Latin 'o', Greek 'ο', and Cyrillic 'о' are still different characters as defined by these forms.
+NFKCやNFKDというような標準系は見た目が近い同一の形式を一つの値に対応させます。
+2つのシンボルの見た目が似ていても、実際に異なるアルファベットの場合はこのような対応はしないことに注意してください。
+たとえば、ラテン文字の 'o'、ギリシャ文字の 'ο'、キリル文字の 'о' は依然として、これらの標準系で定義されたように異なる文字です。 
 
-## Correct text modifications
+## 文字列の変更を訂正する
 
-The norm package might also come to the rescue when one needs to modify text. Consider a case where you want to search and replace the word "cafe" with its plural form "cafes".  A code snippet could look like this.
+`norm` パッケージは文字列を修正する必要があるときにも助けになってくれます。
+"cafe" という単語を複数形の "cafes" に置換したい状況を考えてみましょう。
+コードスニペットは次のようになります。
 
 ```
 s := "We went to eat at multiple cafe"
@@ -136,15 +144,18 @@ if p := strings.Index(s, cafe); p != -1 {
 fmt.Println(s)
 ```
 
-This prints "We went to eat at multiple cafes" as desired and expected. Now consider our text contains the French spelling "café" in NFD form:
+このスニペットの出力は期待通り "We went to eat at multiple cafes" と表示されます。
+それでは、NFD形式で書かれたフランス語の綴りである "café" を含む文字列を考えてみましょう。
 
 ```
 s := "We went to eat at multiple cafe\u0301"
 ```
 
-Using the same code from above, the plural "s" would still be inserted after the 'e', but before the acute, resulting in  "We went to eat at multiple cafeś".  This behavior is undesirable.
+先程と同じスニペットを使うと、同じく複数形の "s" は 'e' の後に挿入されますが、アキュートの前に挿入されてしまいます。
+結果は "We went to eat at multiple cafeś" となります。これは期待した結果ではありません。
 
-The problem is that the code does not respect the boundaries between multi-rune characters and inserts a rune in the middle of a character.  Using the norm package, we can rewrite this piece of code as follows:
+このコードが複数のルーンを使った文字の境界を反映せずに、文字の真ん中にルーンを挿入してしまうことが問題です。
+`norm` パッケージを用いて、先ほどのスニペットを次のように書き換えることが出来ます。
 
 ```
 s := "We went to eat at multiple cafe\u0301"
@@ -159,15 +170,22 @@ if p := strings.Index(s, cafe); p != -1 {
 fmt.Println(s)
 ```
 
-This may be a contrived example, but the gist should be clear. Be mindful of the fact that characters can span multiple runes. Generally these kinds of problems can be avoided by using search functionality that respects character boundaries (such as the planned go.text/search package.)
+この例は作為的なものですが、このコード片がやろうとしていることは明らかでしょう。
+文字は複数のルーンから構成されうるという事実を意識しましょう。
+一般的にこのような問題は文字の境界を認識している検索機能（`golang.org/x/text` パッケージとして計画されているようなもの）を使うことで
+避けることが出来ます。
 
-## Iteration
+## イテレーション
 
-Another tool provided by the norm package that may help dealing with character boundaries is its iterator, [norm.Iter](http://godoc.org/code.google.com/p/go.text/unicode/norm#Iter). It iterates over characters one at a time in the normal form of choice.
+他に `norm` パッケージより提供されている、文字列の境界を扱う上で便利な機能にはイテレータがあります。内容は [norm.Iter](http://godoc.org/golang.org/x/text/unicode/norm#Iter) で確認してください。
+これは選択した正規化形式での文字を1つずつイテレーションしていきます。
 
-## Performing magic
+## 技を披露する
 
-As mentioned earlier, most text is in NFC form, where base characters and modifiers are combined into a single rune whenever possible.  For the purpose of analyzing characters, it is often easier to handle runes after decomposition into their smallest components. This is where the NFD form comes in handy. For example, the following piece of code creates a transform.Transformer that decomposes text into its smallest parts, removes all accents, and then recomposes the text into NFC:
+先にも述べたように、たいていの文字列はNFC形式で、このとき可能な限り土台の文字と修飾子は合成されて1つのルーンにされます。
+文字を解析する場合には、しばしばルーンを最小限の要素に分解した後のほうが扱いやすいことがあります。
+このようなときNFD形式が便利です。たとえば、次のスニペットでは文字列を最小限の部品に分解し、
+アクセント記号をすべて取り除き、再度文字列をNFC形式に合成する `transform.Transformer` を作成します。
 
 ```
 import (
@@ -183,42 +201,54 @@ isMn := func(r rune) bool {
 t := transform.Chain(norm.NFD, transform.RemoveFunc(isMn), norm.NFC)
 ```
 
-The resulting Transformer can be used to remove accents from an io.Reader of choice as follows:
+ここで作成された `Transformer` は、次のように `io.Reader` 内のアクセントを取り除くために使うことが出来ます。
 
 ```
 r = transform.NewReader(r, t)
-// read as before ...
+// 通常と同様にreadする
 ```
 
-This will, for example, convert any mention of "cafés" in the text to "cafes", regardless of the normal form in which the original text was encoded.
+たとえば、このコードは、元の文字列がどのように正規化されていても、すべての "cafés" を "cafes" に変換します。 
 
-## Normalization info
+## 正規化の情報
 
-As mentioned earlier, some packages precompute normalizations into their tables to minimize the need for normalization at run time. The type norm.Properties provides access to the per-rune information needed by these packages, most notably the Canonical Combining Class and decomposition information. Read the [documentation](http://godoc.org/code.google.com/p/go.text/unicode/norm/#Properties) for this type if you want to dig deeper.
+先に述べたように、パッケージによっては正規化を事前に計算してテーブルに保存し、ランタイムでの正規化を必要最低限にします。
+`norm.Properties` 型はこれらのパッケージに必要なルーン毎の情報にアクセスできるようにしています。
+特筆すべきは正規結合クラス（Canonical Combining Class）と分解情報にアクセスできる点です。
+この型の詳細を知りたい方は [ドキュメント](http://godoc.org/golang.org/x/text/unicode/norm/#Properties) を読んでください。
 
-## Performance
+## パフォーマンス
 
-To give an idea of the performance of normalization, we compare it against the performance of strings.ToLower. The sample in the first row is both lowercase and NFC and can in every case be returned as is. The second sample is neither and requires writing a new version.
+正規化のパフォーマンスを理解してもらうために、 `strings.ToLower` のパフォーマンスと比較してみましょう。
+次の表の1行目はすべて小文字でNFCになっており、すべての文字はそのまま返されます。
+2行目のサンプルは大文字も混じりNFCでない文字も含まれていて、変換が必要になります。
 
-|*Input              |*ToLower|*NFC Append|*NFC Transform|*NFC Iter       |
+| 入力                |ToLower |NFC追加    |NFC変換        |NFCイテレーション |
 |:-------------------|:-------|:----------|:-------------|:---------------|
 |nörmalization       |199 ns  |137 ns     |133 ns        |251 ns (621 ns) |
 |No\u0308rmalization |427 ns  |836 ns     |845 ns        |573 ns (948 ns) |
 
-The column with the results for the iterator shows both the measurement with and without initialization of the iterator, which contain buffers that don't need to be reinitialized upon reuse.
+イテレータの結果に関する列ではイテレータの初期化をすでにしている場合としていない場合の両方の計測結果を表示しています。
+初期化をした場合は次回以降のイテレーションではバッファを再利用することが出来ます。
 
-As you can see, detecting whether a string is normalized can be quite efficient. A lot of the cost of normalizing in the second row is for the initialization of buffers, the cost of which is amortized when one is processing larger strings. As it turns out, these buffers are rarely needed, so we may change the implementation at some point to speed up the common case for small strings even further.
+ごらんの通り、文字列が正規化されているかどうかは非常に効率的に判断されています。
+2行目の正規化のコストはバッファの初期化によるものが大きく、そのコストは大きな文字列を扱う際にはならされます。
+これらのバッファはあまり必要ないとわかってきたので、よく使われる小さい文字列の場合にもっと高速化できるように、
+いずれ実装を変更するかもしれません。
 
-## Conclusion
+## 結論
 
-If you're dealing with text inside Go, you generally do not have to use the unicode/norm package to normalize your text. The package may still be useful for things like ensuring that strings are normalized before sending them out or to do advanced text manipulation.
+あなたがGoのプログラム内で文字列を扱っているのであれば、通常は文字列の正規化に `unicode/norm` パッケージを使う必要ありません。
+このパッケージは文字列を外のシステムに送るとき、あるいはより発展的な文字列処理をしたいときに、文字列が確実に正規化されているように
+したい場合には便利です。
 
-This article briefly mentioned the existence of other go.text packages as well as multilingual text processing and it may have raised more questions than it has given answers. The discussion of these topics, however, will have to wait until another day.
+この記事では多言語文字列処理と同時に他の `golang.org/x/text` のパッケージについても簡単に触れまいた。
+そしてこの記事で理解したものの数よりも多くの疑問が湧いてきことでしょう。しかしながら、この話題に関する議論はまたの機会にしましょう。
 
 By Marcel van Lohuizen
 
 ## あわせて読みたい
 
 * [Strings, bytes, runes and characters in Go](https://blog.golang.org/strings)
-  * [Goにおける文字列、バイト、ルーンと文字](./strings/)
+  * [Goにおける文字列、バイト、ルーンと文字](../strings/)
 

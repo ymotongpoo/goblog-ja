@@ -250,6 +250,7 @@ Goのコードベースにはすでに多くの `go generate` の事例があり
 * [JSON and Go](https://blog.golang.org/json-and-go)
 * [Go Slices: usage and internals](https://blog.golang.org/go-slices-usage-and-internals)
 * [Go Concurrency Patterns: Timing out, moving on](https://blog.golang.org/go-concurrency-patterns-timing-out-and)
+  * [Goの並行パターン：タイムアウトと進行](../go-concurrency-patterns-timing-out-and/)
 * [Defer, Panic, and Recover](https://blog.golang.org/defer-panic-and-recover)
 * [Share Memory By Communicating](https://blog.golang.org/share-memory-by-communicating)
 * [JSON-RPC: a tale of interfaces](https://blog.golang.org/json-rpc-tale-of-interfaces)
