@@ -3,7 +3,7 @@ build:
   steps:
     - arjen/hugo-build:
         version: "0.15"
-        theme: angels-ladder
+        theme: simpleblog
         flags: --disableSitemap=false --disableRSS=false --baseUrl=https://ymotongpoo.github.io/goblog-ja/
 deploy:
   steps:

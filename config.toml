@@ -1,8 +1,9 @@
-baseurl = "https://www.ymotongpoo.com/works/goblog-ja/"
-languageCode = "ja-jp"
-title = "The Go Blog 日本語訳"
-pagenate = 20
-copyright = "Except as noted, the content of this page is licensed under the Creative Commons Attribution 3.0 License, and code is licensed under a BSD license. The Go team (original) and Yoshi Yamaguchi (translation)" 
+BaseURL = "https://www.ymotongpoo.com/works/goblog-ja/"
+LanguageCode = "ja-jp"
+Title = "The Go Blog 日本語訳"
+Copyright = "Except as noted, the content of this page is licensed under the Creative Commons Attribution 3.0 License, and code is licensed under a BSD license. The Go team (original) and Yoshi Yamaguchi (translation)" 
+Paginate = 200
+PaginatePath = "/works/goblog-ja/page"
 
 [Params]
 description = "The Go Blogの日本語訳を公開しています。修正は https://github.com/ymotongpoo/goblog-ja/ まで。"
