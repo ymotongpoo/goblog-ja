@@ -125,3 +125,29 @@ cgoのパッケージをビルドするために、いつもどおり [go build]
 最後に、これが内部でどのように動いているか興味がございましたら、ランタイムパッケージの [cgocall.go](https://golang.org/src/runtime/cgocall.go) の先頭のコメントをご覧ください。
 
 *By Andrew Gerrand*
+
+## あわせて読みたい
+* [HTTP/2 Server Push](https://blog.golang.org/h2push)
+* [Introducing HTTP Tracing](https://blog.golang.org/http-tracing)
+* [Generating code](https://blog.golang.org/generate)
+* [Introducing the Go Race Detector](https://blog.golang.org/race-detector)
+* [Go maps in action](https://blog.golang.org/go-maps-in-action)
+* [go fmt your code](https://blog.golang.org/go-fmt-your-code)
+* [Organizing Go code](https://blog.golang.org/organizing-go-code)
+* [Debugging Go programs with the GNU Debugger](https://blog.golang.org/debugging-go-programs-with-gnu-debugger)
+* [The Go image/draw package](https://blog.golang.org/go-imagedraw-package)
+* [The Go image package](https://blog.golang.org/go-image-package)
+* [The Laws of Reflection](https://blog.golang.org/laws-of-reflection)
+* [Error handling and Go](https://blog.golang.org/error-handling-and-go)
+* ["First Class Functions in Go"](https://blog.golang.org/first-class-functions-in-go-and-new-go)
+* [Profiling Go Programs](https://blog.golang.org/profiling-go-programs)
+* [A GIF decoder: an exercise in Go interfaces](https://blog.golang.org/gif-decoder-exercise-in-go-interfaces)
+* [Introducing Gofix](https://blog.golang.org/introducing-gofix)
+* [Godoc: documenting Go code](https://blog.golang.org/godoc-documenting-go-code)
+* [Gobs of data](https://blog.golang.org/gobs-of-data)
+* [JSON and Go](https://blog.golang.org/json-and-go)
+* [Go Slices: usage and internals](https://blog.golang.org/go-slices-usage-and-internals)
+* [Go Concurrency Patterns: Timing out, moving on](https://blog.golang.org/go-concurrency-patterns-timing-out-and)
+* [Defer, Panic, and Recover](https://blog.golang.org/defer-panic-and-recover)
+* [Share Memory By Communicating](https://blog.golang.org/share-memory-by-communicating)
+* [JSON-RPC: a tale of interfaces](https://blog.golang.org/json-rpc-tale-of-interfaces)
