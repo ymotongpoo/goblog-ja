@@ -8,12 +8,12 @@ tags = ["cgo"]
 # C? Go? Cgo!
 [C? Go? Cgo!](https://blog.golang.org/c-go-cgo) By Andrew Gerrand
 
+## はじめに
 
-## Introduction
-
-Cgo lets Go packages call C code. Given a Go source file written with some special features, cgo outputs Go and C files that can be combined into a single Go package.
+cgoを使うことでGoパッケージを通してCコードを呼び出すことができます。ある特徴を持って書かれたGoのソースファイルが与えられると、cgoは単一のGoパッケージにまとめることが可能なGoとCのファイルを出力します。
 
 To lead with an example, here's a Go package that provides two functions - `Random` and `Seed` - that wrap C's `random` and `srandom` functions.
+例として、ここにCの関数 `random` と `srandom` をラップした2つの関数 - `Random` と `Seed` - を提供するGoパッケージがあります。
 
 ```
 package rand
@@ -33,12 +33,13 @@ func Seed(i int) {
 ```
 
 Let's look at what's happening here, starting with the import statement.
+ここで何が起きているか見ていきましょう、importの文から見ていきます。
 
-The `rand` package imports `"C"`, but you'll find there's no such package in the standard Go library. That's because `C` is a "pseudo-package", a special name interpreted by cgo as a reference to C's name space.
+`rand` パッケージは `"C"` をインポートしていますが、Goのライブラリにはそのようなパッケージがないことに気づくでしょう。
 
-The `rand` package contains four references to the `C` package: the calls to `C.random` and `C.srandom`, the conversion `C.uint(i)`, and the `import` statement.
+`rand` パッケージは `C` パッケージに対する４つの参照を含んでいます: `C.random` と `C.srandom` の呼び出しと、 変換 `C.uint(i)` 、そして `import` 文です。
 
-The `Random` function calls the standard C library's `random` function and returns the result.  In C, `random` returns a value of the C type `long`, which cgo represents as the type `C.long`. It must be converted to a Go type before it can be used by Go code outside this package, using an ordinary Go type conversion:
+`Random` 関数はCの標準ライブラリ `random` 関数を呼び出し、その結果を返しています。C内で、`random` はcgoにおける `C.long` 型である `lang` 型の値を返しています。それはこのパッケージ外部のGoコードで使われる前にGoの型に変換しなければなりません:
 
 ```
 func Random() int {
@@ -46,7 +47,7 @@ func Random() int {
 }
 ```
 
-Here's an equivalent function that uses a temporary variable to illustrate the type conversion more explicitly:
+型変換を明示的に示すための一時変数を用いた同様の関数は以下のとおりです:
 
 ```
 func Random() int {
@@ -55,7 +56,7 @@ func Random() int {
 }
 ```
 
-The `Seed` function does the reverse, in a way. It takes a regular Go `int`, converts it to the C `unsigned`int` type, and passes it to the C function `srandom`.
+`Seed` 関数はある意味で逆のことをします。その関数は正規のGoの型 `int` を引数にとり、それをCの型 `unsigned int` に変換し、Cの関数 `srandom` に渡します。
 
 ```
 func Seed(i int) {
@@ -63,9 +64,9 @@ func Seed(i int) {
 }
 ```
 
-Note that cgo knows the `unsigned`int` type as `C.uint`; see the [cgo documentation](http://golang.org/cmd/cgo) for a complete list of these numeric type names.
+cgoは `unsigned int` を `C.uint` として認識していることに注意してください; 数値型名の完全なリストは [cgo documentation](http://golang.org/cmd/cgo) をご覧ください。
 
-The one detail of this example we haven't examined yet is the comment above the `import` statement.
+私たちがこの例においてまだ考察していない詳細部分は、 `import` 文の上にあるコメントです。
 
 ```
 /*
@@ -74,11 +75,11 @@ The one detail of this example we haven't examined yet is the comment above the 
 import "C"
 ```
 
-Cgo recognizes this comment.  Any lines starting with `#cgo` followed by a space character are removed; these become directives for cgo. The remaining lines are used as a header when compiling the C parts of the package.  In this case those lines are just a single `#include` statement, but they can be almost any C code.  The `#cgo` directives are used to provide flags for the compiler and linker when building the C parts of the package.
+cgoはこのコメントを認識してます。スペースに続く `#cgo` で始まる行は全て取り除かれます; それらはcgoのための指示子となります。パッケージのCの部分をコンパイルする際に残りの行はヘッダーとして用いられます。この場合それらの行はちょうど単一の `#include` 文となりますが、それらはほぼ全てのCコードとなりえます。パッケージのCの部分をビルドする際に、コンパイラやリンカのためのフラグを提供するために `#cgo` が使われます。
 
-There is a limitation: if your program uses any `//export` directives, then the C code in the comment may only include declarations (`extern int f();`), not definitions (`int f() { return 1; }`).  You can use `//export` directives to make Go functions accessible to C code.
+制限があります: `//export` 指示子を使用する場合、コメント中のCコードは宣言（`extern int f();`）のみ含むことができ、定義（`int f() { return 1; }`）を含むことができません。Cコードにアクセス可能なGoコードを作るために `//export` 指示子を使うことができます。
 
-The `#cgo` and `//export` directives are documented in the [cgo documentation](http://golang.org/cmd/cgo/).
+`#cgo` と `//export` 指示子に関するドキュメントは[cgo documentation](http://golang.org/cmd/cgo/)にあります。
 
 ## Strings and things
 
@@ -124,3 +125,5 @@ To build cgo packages, just use [go build](http://golang.org/cmd/go/#Compile_pac
 The [cgo command](http://golang.org/cmd/cgo/) documentation has more detail about the C pseudo-package and the build process. The [cgo examples](http://golang.org/misc/cgo/) in the Go tree demonstrate more advanced concepts.
 
 Finally, if you're curious as to how all this works internally, take a look at the introductory comment of the runtime package's [cgocall.go](https://golang.org/src/runtime/cgocall.go).
+
+*By Andrew Gerrand*
