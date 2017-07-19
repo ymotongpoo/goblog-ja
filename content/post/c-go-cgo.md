@@ -104,7 +104,7 @@ func Print(s strics := C.CString(s)
 
 Cコードによって生成されたメモリアロケーションは、Goのメモリマネージャーから認識されません。`C.String` （または任意のCのメモリアロケーション）を用いてCの文字列を生成するときは、`C.free` を呼び出してメモリを解放することを忘れてはいけません。
 
-`C.CString` の呼び出しは文字配列の最初を示すポインタを返すので、関数から抜け出す前にそのポインタを [unsafe.Pointer](http://golang.org/pkg/unsafe/#Pointer) に変換し、`C.free` を用いてメモリアロケーションを解放します。cgoプログラムにおける共通のイディオムは、この `Print` の書き換えのようにアロケートしたあとすぐに [defer](http://golang.org/doc/articles/defer_panic_recover.html) によって解放することです（特にあとに続くコードが一つの関数呼び出しより複雑な場合）:
+`C.CString` の呼び出しは文字配列の最初を示すポインタを返すので、関数から抜け出す前にそのポインタを [unsafe.Pointer](http://golang.org/pkg/unsafe/#Pointer) に変換し、`C.free` を用いてメモリアロケーションを解放します。cgoプログラムにおける共通のイディオムは、この書き換えた `Print` のように、アロケートしたあとすぐに [defer](http://golang.org/doc/articles/defer_panic_recover.html) によって解放することです（特にあとに続くコードが一つの関数呼び出しより複雑な場合）:
 
 ```
 func Print(s string) {
