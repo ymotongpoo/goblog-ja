@@ -31,7 +31,6 @@ func Seed(i int) {
 }
 ```
 
-Let's look at what's happening here, starting with the import statement.
 ここで何が起きているか見ていきましょう、importの文から見ていきます。
 
 `rand` パッケージは `"C"` をインポートしていますが、Goのライブラリにはそのようなパッケージがないことに気づくでしょう。
