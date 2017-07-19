@@ -62,7 +62,7 @@ func Seed(i int) {
 }
 ```
 
-cgoは `unsigned int` を `C.uint` として認識していることに注意してください; 数値型名の完全なリストは [cgo documentation](http://golang.org/cmd/cgo) をご覧ください。
+cgoは `unsigned int` を `C.uint` として認識していることに注意してください。数値型名の完全なリストは [cgo documentation](http://golang.org/cmd/cgo) をご覧ください。
 
 私たちがこの例においてまだ考察していない詳細部分は、 `import` 文の上にあるコメントです。
 
