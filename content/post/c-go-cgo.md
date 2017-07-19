@@ -1,5 +1,5 @@
 +++
-date = "2017-07-19T16:49:45+09:00"
+date = "2011-03-17T16:49:45+09:00"
 title = "C? Go? Cgo!"
 draft = false
 tags = ["cgo"]
