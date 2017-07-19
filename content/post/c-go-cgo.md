@@ -81,13 +81,13 @@ cgoはこのコメントを認識してます。スペースに続く `#cgo` で
 
 `#cgo` と `//export` 指示子に関するドキュメントは[cgo documentation](http://golang.org/cmd/cgo/)にあります。
 
-## Strings and things
+## Strings と things
 
-Unlike Go, C doesn't have an explicit string type. Strings in C are represented by a zero-terminated array of chars.
+残念なことに、GoとCには明示的なstring型がありません。Cにおける文字列は、NULL終端された文字配列によって表されます。
 
-Conversion between Go and C strings is done with the `C.CString`, `C.GoString`, and `C.GoStringN` functions. These conversions make a copy of the string data.
+GoとCの間の文字列変換は、`C.String` と `C.GoString` 、そして `C.GoStringN` 関数を用いて行うことができます。それらの変換は文字列データのコピーを生成します。
 
-This next example implements a `Print` function that writes a string to standard output using C's `fputs` function from the `stdio` library:
+この次の例はCの `stdio` ライブラリから `fputs` 関数を用いた文字列の標準出力を行う `Print` 関数の実装です:
 
 ```
 package print
@@ -104,9 +104,9 @@ func Print(s strics := C.CString(s)
 }
 ```
 
-Memory allocations made by C code are not known to Go's memory manager. When you create a C string with `C.CString` (or any C memory allocation) you must remember to free the memory when you're done with it by calling `C.free`.
+Cコードによって生成されたメモリアロケーションは、Goのメモリマネージャーから認識されません。`C.String` （または任意のCのメモリアロケーション）を用いてCの文字列を生成するときは、`C.free` を呼び出してメモリを解放することを忘れてはいけません。
 
-The call to `C.CString` returns a pointer to the start of the char array, so before the function exits we convert it to an [unsafe.Pointer](http://golang.org/pkg/unsafe/#Pointer) and release the memory allocation with `C.free`. A common idiom in cgo programs is to [defer](http://golang.org/doc/articles/defer_panic_recover.html) the free immediately after allocating (especially when the code that follows is more complex than a single function call), as in this rewrite of `Print`:
+`C.CString` の呼び出しは文字配列の最初を示すポインタを返すので、関数から抜け出す前にそのポインタを [unsafe.Pointer](http://golang.org/pkg/unsafe/#Pointer) に変換し、`C.free` を用いてメモリアロケーションを解放します。cgoプログラムにおける共通のイディオムは、この `Print` の書き換えのようにアロケートしたあとすぐに [defer](http://golang.org/doc/articles/defer_panic_recover.html) によって解放することです（特にあとに続くコードが一つの関数呼び出しより複雑な場合）:
 
 ```
 func Print(s string) {
@@ -116,14 +116,14 @@ func Print(s string) {
 }
 ```
 
-## Building cgo packages
+## cgoのパッケージをビルドする
 
-To build cgo packages, just use [go build](http://golang.org/cmd/go/#Compile_packages_and_dependencies) or [go install](http://golang.org/cmd/go/#Compile_and_install_packages_and_dependencies) as usual. The go tool recognizes the special `"C"` import and automatically uses cgo for those files.
+cgoのパッケージをビルドするために、いつもどおり [go build](http://golang.org/cmd/go/#Compile_packages_and_dependencies) または [go install](http://golang.org/cmd/go/#Compile_and_install_packages_and_dependencies) を使いましょう。go toolは特別な `"C"` インポートを認識し、それらのファイルのために自動的にcgoを使います。
 
-## More cgo resources
+## さらなるcgoのリソース
 
-The [cgo command](http://golang.org/cmd/cgo/) documentation has more detail about the C pseudo-package and the build process. The [cgo examples](http://golang.org/misc/cgo/) in the Go tree demonstrate more advanced concepts.
+[cgo command](http://golang.org/cmd/cgo/) のドキュメントにCの擬似パッケージやそのビルドプロセスについてより詳しく載っています。Goディレクトリツリー内の [cgo examples](http://golang.org/misc/cgo/) により高度な発想が示されています。
 
-Finally, if you're curious as to how all this works internally, take a look at the introductory comment of the runtime package's [cgocall.go](https://golang.org/src/runtime/cgocall.go).
+最後に、これが内部でどのように動いているか興味がおありでしたら、ランタイムパッケージの [cgocall.go](https://golang.org/src/runtime/cgocall.go) の先頭のコメントをご覧ください。
 
 *By Andrew Gerrand*
