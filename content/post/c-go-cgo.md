@@ -12,7 +12,6 @@ tags = ["cgo"]
 
 cgoを使うことでGoパッケージを通してCコードを呼び出すことができます。ある特徴を持って書かれたGoのソースファイルが与えられると、cgoは単一のGoパッケージにまとめることが可能なGoとCのファイルを出力します。
 
-To lead with an example, here's a Go package that provides two functions - `Random` and `Seed` - that wrap C's `random` and `srandom` functions.
 例として、ここにCの関数 `random` と `srandom` をラップした2つの関数 - `Random` と `Seed` - を提供するGoパッケージがあります。
 
 ```
