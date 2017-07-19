@@ -267,3 +267,49 @@ Goのような言語にそういった方法をどのように適用させるか
 もちろん、言語仕様の変更も今後ありうるでしょう、しかしすべての問題が言語仕様の変更で解決されるのが最適解になるわけではありません。
 
 ## Go 2のリリース
+![process5](./process5.png)
+
+最後に、私たちはどのようにGo 2をリリースするのでしょうか。
+
+私が思うに、最善な計画としてGo 2の[後方互換性がある部分](https://golang.org/doc/go1compat)を、Go 1のリリース順序に則って徐々に機能毎にリリースしていくのが良いと考えています。
+これにはいくつか重要な性質があります。第一に、この方法はGo 1のリリースを[通常のスケジュール](https://golang.org/wiki/Go-Release-Cycle)を保っていて、状況に合わせてユーザが依存しているバグの修正や改善を行うことができます。第二に、Go 1とGo 2で開発リソースが分かれることを避けられます。
+第三にGo 1とGo 2で分岐するのを避けることができ、マイグレーションが容易になります。第四に、私たちが一度に1つの変更に集中し、リリースができるようになり、品質を維持する助けになります。
+第五に、私たちが後方互換を保つように機能を設計する励みになるということです。
+
+いかなる変更もGo 1のリリースに入り始める前に議論や計画をするための時間が必要ですが、私は1年後のGo 1.12くらいから小さな変更を入れ始めるのが妥当ではないかと見ています。
+またその間に、パッケージ管理のサポートをまず入れる時間を作ることができます。
+
+後方互換の仕事が終わったら、たとえばGo 1.20くらいで、後方互換性のない変更をGo 2.0に入れることができるでしょう。
+後方互換性のない変更がまったくないとわかった場合には、おそらくGo 1.20をGo 2.0と宣言するだけになるでしょう。
+いずれにせよ、Go 1系のリリース順序からGo 2系のリリース順序に移ったタイミングで、最後のGo 1系のリリースのサポート期間を伸ばすと思います。
+
+ここに書いたことはすべてちょっとした推測であり、先に書いた特定のリリース番号は大雑把に見積もっただけのものですが、はっきりと言えることは私たちはGo 1を捨てようというつもりはありません。
+そして事実、私たちは可能な限りGo 1を長生きさせたいと考えています。
+
+## 支援が必要です
+
+**私たちはあなたがたの支援が必要です**
+
+本日より、Go 2への転換は始まり、メーリングリストやイシュートラッカーのような公開された、オープンな場で行われるものです。それに伴うあらゆる場所で支援してください。
+
+いま、私たちがなによりも必要としているのは体験レポートです。
+あなたの環境ではGoがどう動作しているか、そしてより重要なのがどう動作していないかを是非教えてください。
+実例や具体的な詳細、そして実体験を盛り込んだブログポストを書いてください。
+そしてそのリンクを私たちの[Wikiページ](https://golang.org/wiki/ExperienceReports)に追加してください。
+これこそが私たち、GoコミュニティがGoに変化をもたらすときの議論の始め方です。
+
+ご清聴ありがとうございました。
+
+By Russ Cox
+
+## あわせて読みたい
+* [Go 2016 Survey Results](https://blog.golang.org/survey2016-results)
+* [Participate in the 2016 Go User Survey and Company Questionnaire](https://blog.golang.org/survey2016)
+* [Go, Open Source, Community](https://blog.golang.org/open-source)
+* [Four years of Go](https://blog.golang.org/4years)
+* [Get thee to a Go meetup](https://blog.golang.org/getthee-to-go-meetup)
+* [Go turns three](https://blog.golang.org/go-turns-three)
+* [Getting to know the Go community](https://blog.golang.org/getting-to-know-go-community)
+* [The Go Programming Language turns two](https://blog.golang.org/go-programming-language-turns-two)
+* [Spotlight on external Go libraries](https://blog.golang.org/spotlight-on-external-go-libraries)
+* [Third-party libraries: goprotobuf and beyond](https://blog.golang.org/third-party-libraries-goprotobuf-and)
