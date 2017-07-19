@@ -124,6 +124,6 @@ cgoのパッケージをビルドするために、いつもどおり [go build]
 
 [cgo command](http://golang.org/cmd/cgo/) のドキュメントにCの擬似パッケージやそのビルドプロセスについてより詳しく載っています。Goディレクトリツリー内の [cgo examples](http://golang.org/misc/cgo/) により高度な発想が示されています。
 
-最後に、これが内部でどのように動いているか興味がおありでしたら、ランタイムパッケージの [cgocall.go](https://golang.org/src/runtime/cgocall.go) の先頭のコメントをご覧ください。
+最後に、これが内部でどのように動いているか興味がございましたら、ランタイムパッケージの [cgocall.go](https://golang.org/src/runtime/cgocall.go) の先頭のコメントをご覧ください。
 
 *By Andrew Gerrand*
