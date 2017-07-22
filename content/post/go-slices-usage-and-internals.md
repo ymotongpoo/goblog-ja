@@ -35,7 +35,7 @@ i := a[0]
 
 ![go-slices-usage-and-internals_slice-array](./go-slices-usage-and-internals_slice-array.png)
 
-Goの配列は値です。配列変数は配列全体を示しています。（Cのように）最初の配列要素を指すポインタではありません。これは配列の値を割り当てたり分配するとき、その内容のコピーを作ることを意味しています（コピーを避けるために配列に*ポインタ*を渡すことができますが、それは配列ではなく配列へのポインタになります）。配列は、名前付けられたフィールドというよりインデックス付けされた構造体の一種、すなわち固定長の複合値として考えられます。
+Goの配列は値です。配列変数は配列全体を示しています。（Cのように）最初の配列要素を指すポインタではありません。これは配列の値を割り当てたり分配するとき、その中身のコピーを作ることを意味しています（コピーを避けるために配列に*ポインタ*を渡すことができますが、それは配列ではなく配列へのポインタになります）。配列は、名前付けられたフィールドというよりインデックス付けされた構造体の一種、すなわち固定長の複合値として考えられます。
 
 配列のリテラルは以下のように書けます:
 
@@ -101,7 +101,7 @@ b := []byte{'g', 'o', 'l', 'a', 'n', 'g'}
 // b[1:4] == []byte{'o', 'l', 'a'}, sharing the same storage as b
 ```
 
-スライスの最初と最後のインデックスはオプションです。それらはデフォルトではそれぞれ0とスライスの長さ設定されます:
+スライスの最初と最後のインデックスはオプションです。それらはデフォルトではそれぞれ0とスライス長が設定されます:
 
 ```
 // b[:2] == []byte{'g', 'o'}
@@ -122,7 +122,7 @@ s := x[:] // a slice referencing the storage of x
 
 ![go-slices-usage-and-internals_slice-struct](./go-slices-usage-and-internals_slice-struct.png)
 
-少し前に `make([]byte, 5)` により作った変数 `s` はこのような構成になっています:
+少し前に `make([]byte, 5)` から作った変数 `s` はこのような構成になっています:
 
 ![go-slices-usage-and-internals_slice-1](./go-slices-usage-and-internals_slice-1.png)
 
@@ -147,7 +147,7 @@ e[1] = 'm'
 // d == []byte{'r', 'o', 'a', 'm'}
 ```
 
-以前私たちは `s` をその容量より小さな長さでスライスしました。私たちは再びスライシングすることによってsをその容量まで大きくすることができます:
+さきほど私たちは `s` をその容量より小さな長さでスライスしました。私たちは再びスライシングすることによってsをその容量まで拡張できます:
 
 ```
 s = s[:cap(s)]
@@ -155,13 +155,12 @@ s = s[:cap(s)]
 
 ![go-slices-usage-and-internals_slice-3](./go-slices-usage-and-internals_slice-3.png)
 
-A slice cannot be grown beyond its capacity. Attempting to do so will cause a runtime panic, just as when indexing outside the bounds of a slice or array. Similarly, slices cannot be re-sliced below zero to access earlier elements in the array.
+スライスはその容量を超えて拡張することはできません。もしそうした場合、スライスや配列の範囲外を参照したときのようにランタイムパニックが起こるでしょう。同じように、配列の最初の要素より前にアクセスするためにスライスを0以下に再スライスすることはできません。
 
-スライスはその容量を超えて大きくすることはできません。もしそうした場合、スライスや配列の範囲外を参照したときのようにランタイムパニックが起こるでしょう。同じように、配列の最初の要素より前にアクセスするためにスライスを0以下に再スライスすることはできません。
+## スライスを拡張する（コピー・アペンド関数）
 
-## スライスを大きくする（コピー・アペンド関数）
-
-To increase the capacity of a slice one must create a new, larger slice and copy the contents of the original slice into it. This technique is how dynamic array implementations from other languages work behind the scenes. The next example doubles the capacity of `s` by making a new slice, `t`, copying the contents of `s` into `t`, and then assigning the slice value `t` to `s`:
+スライスの容量を増やすために、新しくてより大きいスライスを作り、元のスライスの中身をその中にコピーするでしょう。このテクニックは他言語の動的配列の実装が表立たないところで行う手法です。
+次の例では、`s` の容量を2倍にするために、新しいスライス `t` を作り、`s` の中身を `t` にコピーし、スライスの値 `t` を `s` に割り当てています:
 
 ```
 t := make([]byte, len(s), (cap(s)+1)*2) // +1 in case cap(s) == 0
@@ -171,15 +170,15 @@ for i := range s {
 s = t
 ```
 
-The looping piece of this common operation is made easier by the built-in copy function. As the name suggests, copy copies data from a source slice to a destination slice. It returns the number of elements copied.
+このループの部分の一般的な操作は、ビルトインのcopy関数によって簡略化できます。名前が示す通り、copyは元のスライスから目的のスライスにデータをコピーします。そして、copyはコピーした要素の数を返します。
 
 ```
 func copy(dst, src []T) int
 ```
 
-The `copy` function supports copying between slices of different lengths (it will copy only up to the smaller number of elements). In addition, `copy` can handle source and destination slices that share the same underlying array, handling overlapping slices correctly.
+`copy` 関数は異なる長さのスライス間でのコピーに対応しています（小さい方の要素数だけコピーします）。さらに、`copy` は元となる同じ配列を共有する元のスライスと目的のスライスを扱い、オーバーラップするスライスを正しく扱います。
 
-Using `copy`, we can simplify the code snippet above:
+`copy` を使い、上記のコードの断片を簡略化できます:
 
 ```
 t := make([]byte, len(s), (cap(s)+1)*2)
@@ -187,7 +186,7 @@ copy(t, s)
 s = t
 ```
 
-A common operation is to append data to the end of a slice. This function appends byte elements to a slice of bytes, growing the slice if necessary, and returns the updated slice value:
+一般的な操作のひとつはデータをスライスの末尾に追加することです。この関数はバイトの要素をバイトのスライスに追加し、必要であればスライスを拡張します、そして更新されたスライス値を返します:
 
 ```
 func AppendByte(slice []byte, data ...byte) []byte {
@@ -205,7 +204,7 @@ func AppendByte(slice []byte, data ...byte) []byte {
 }
 ```
 
-One could use `AppendByte` like this:
+このように `AppendByte` を使うことができます:
 
 ```
 p := []byte{2, 3, 5}
@@ -213,15 +212,15 @@ p = AppendByte(p, 7, 11, 13)
 // p == []byte{2, 3, 5, 7, 11, 13}
 ```
 
-Functions like `AppendByte` are useful because they offer complete control over the way the slice is grown. Depending on the characteristics of the program, it may be desirable to allocate in smaller or larger chunks, or to put a ceiling on the size of a reallocation.
+`AppendByte` のような関数はスライスの拡張を完璧に制御するので便利です。プログラムの性質に合わせて、チャンクをより大きくまたはより小さくアロケーションしたり、再アロケーションするサイズの上限を増やしたりするのが望ましいかもしれません。
 
-But most programs don't need complete control, so Go provides a built-in `append` function that's good for most purposes; it has the signature
+しかしほとんどのプログラムは完璧に制御する必要がないので、Goはほとんどの目的に合うビルトインの `append` 関数を提供しています。それはシグネチャを持っています。
 
 ```
 func append(s []T, x ...T) []T 
 ```
 
-The `append` function appends the elements `x` to the end of the slice `s`, and grows the slice if a greater capacity is needed.
+`append` 関数は要素 `x` をスライス `s` の末尾に追加し、より大きな容量が必要であればスライスを拡張します。
 
 ```
 a := make([]int, 1)
@@ -230,7 +229,7 @@ a = append(a, 1, 2, 3)
 // a == []int{0, 1, 2, 3}
 ```
 
-To append one slice to another, use `...` to expand the second argument to a list of arguments.
+あるスライスを別のスライスに追加する場合は、第2引数を引数のリストに伸長するために `...` を使います。
 
 ```
 a := []string{"John", "Paul"}
@@ -239,7 +238,7 @@ a = append(a, b...) // equivalent to "append(a, b[0], b[1], b[2])"
 // a == []string{"John", "Paul", "George", "Ringo", "Pete"}
 ```
 
-Since the zero value of a slice (`nil`) acts like a zero-length slice, you can declare a slice variable and then append to it in a loop:
+スライスのゼロ値（`nil`）は長さ0のスライスのように振る舞うので、あなたはスライス変数を宣言した後ループ内でそれに追加できます:
 
 ```
 // Filter returns a new slice holding only
@@ -255,11 +254,11 @@ func Filter(s []int, fn func(int) bool) []int {
 }
 ```
 
-## "gotcha" できる
+## "理解" できる
 
-As mentioned earlier, re-slicing a slice doesn't make a copy of the underlying array. The full array will be kept in memory until it is no longer referenced. Occasionally this can cause the program to hold all the data in memory when only a small piece of it is needed.
+最初に述べた通り、あるスライスの再スライシングでは元の配列のコピーを作りません。満杯の配列は参照されなくなるまでメモリに残り続けるでしょう。これでは小さなデータの断片が欲しいときだけメモリ上に全てのデータを保持するプログラムをときどき生み出してしまいます。
 
-For example, this `FindDigits` function loads a file into memory and searches it for the first group of consecutive numeric digits, returning them as a new slice.
+例えば、この `FindDigits` 関数はメモリにファイルを読み込み、連続する数字列のうち最初の組を探し、それを新しいスライスとして返します。
 
 ```
 var digitRegexp = regexp.MustCompile("[0-9]+")
@@ -270,9 +269,9 @@ func FindDigits(filename string) []byte {
 }
 ```
 
-This code behaves as advertised, but the returned `[]byte` points into an array containing the entire file. Since the slice references the original array, as long as the slice is kept around the garbage collector can't release the array; the few useful bytes of the file keep the entire contents in memory.
+このコードは宣言した通りに振る舞いますが、戻り値 `[]byte` はファイル全体を含む配列を指しています。スライスは元の配列を参照するため、スライスはガベージコレクタが配列を解放できない状態にずっとします。ファイルのほんの一部を利用するだけだったのにファイルの中身全体をメモリ上に保持しています。
 
-To fix this problem one can copy the interesting data to a new slice before returning it:
+この問題を解決するために、注目しているデータを返す前に新しいスライスにコピーします:
 
 ```
 func CopyDigits(filename string) []byte {
@@ -284,11 +283,9 @@ func CopyDigits(filename string) []byte {
 }
 ```
 
-A more concise version of this function could be constructed by using `append`. This is left as an exercise for the reader.
+この関数のより簡潔なバージョンは `append` を使って作ることができます。これは読者への練習問題として残しておきます。
 
 ## 関連記事
-
-[Effective Go](http://golang.org/doc/effective_go.html) contains an in-depth treatment of [slices](http://golang.org/doc/effective_go.html#slices) and [arrays](http://golang.org/doc/effective_go.html#arrays), and the Go [language specification](http://golang.org/doc/go_spec.html) defines [slices](http://golang.org/doc/go_spec.html#Slice_types) and their [associated](http://golang.org/doc/go_spec.html#Length_and_capacity) [helper](http://golang.org/doc/go_spec.html#Making_slices_maps_and_channels) [functions](http://golang.org/doc/go_spec.html#Appending_and_copying_slices).
 
 [Effective Go](http://golang.org/doc/effective_go.html) には [スライス](http://golang.org/doc/effective_go.html#slices) や [配列](http://golang.org/doc/effective_go.html#arrays) の詳細な扱い方が載っており、Go [Language Specification](http://golang.org/doc/go_spec.html) では [スライス](http://golang.org/doc/go_spec.html#Slice_types) とそれに [関連した](http://golang.org/doc/go_spec.html#Length_and_capacity) [ヘルパー](http://golang.org/doc/go_spec.html#Making_slices_maps_and_channels) [関数](http://golang.org/doc/go_spec.html#Appending_and_copying_slices) が定義されています。
 
