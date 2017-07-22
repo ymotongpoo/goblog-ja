@@ -1,22 +1,22 @@
 +++
 date = "2011-01-05T20:57:09+09:00"
-title = "Goのスライス: 使い方と内部構造（Go Slices: usage and internals）"
+title = "Goのスライス: 使い方と内部詳細（Go Slices: usage and internals）"
 draft = false
 tags = ["slice", "technical"]
 +++
 
-# Goのスライス: 使い方と内部構造
+# Goのスライス: 使い方と内部詳細
 [Go Slices: usage and internals](https://blog.golang.org/go-slices-usage-and-internals) By Andrew Gerrand
 
 ## はじめに
 
-Go's slice type provides a convenient and efficient means of working with sequences of typed data. Slices are analogous to arrays in other languages, but have some unusual properties. This article will look at what slices are and how they are used.
+Goのスライス型は型付きのデータ列を伴って動作する便利で効率的な手段を提供します。スライスは他の言語における配列に似ていますが、いくつか珍しい特性を持っています。この記事ではスライスが何であるか、そしてどうやって使うかについて見ていきます。
 
 ## 配列
 
-The slice type is an abstraction built on top of Go's array type, and so to understand slices we must first understand arrays.
+スライス型はGoの配列型を抽象化したものなので、スライスを理解する前にまずは配列を理解しなければなりません。
 
-An array type definition specifies a length and an element type. For example, the type `[4]int` represents an array of four integers. An array's size is fixed; its length is part of its type (`[4]int` and `[5]int` are distinct, incompatible types). Arrays can be indexed in the usual way, so the expression `s[n]` accesses the nth element, starting from zero.
+配列型は長さと要素型を明示的に定義します。例えば、型 `[4]int` は4つの整数から成る配列を表しています。配列のサイズは固定されており、その長さはその型の一部となっています（`[4]int` と `[5]int` は全く別の相いれない型です）。配列はいつも通りのやり方でインデックス付けることができるので、`s[n]` はn番目の要素（0スタート）にアクセスします。
 
 ```
 var a [4]int
@@ -25,51 +25,51 @@ i := a[0]
 // i == 1
 ```
 
-Arrays do not need to be initialized explicitly; the zero value of an array is a ready-to-use array whose elements are themselves zeroed:
+配列は明示的に初期化する必要がありません。配列のゼロ値は、ゼロ値初期化された要素を持つすぐに使える配列です:
 
 ```
 // a[2] == 0, the zero value of the int type
 ```
 
-The in-memory representation of `[4]int` is just four integer values laid out sequentially:
+`[4]int` のメモリ上での表現は、連続して割り付けられたちょうど4つの整数値になっています:
 
 ![go-slices-usage-and-internals_slice-array](./go-slices-usage-and-internals_slice-array.png)
 
-Go's arrays are values. An array variable denotes the entire array; it is not a pointer to the first array element (as would be the case in C).  This means that when you assign or pass around an array value you will make a copy of its contents. (To avoid the copy you could pass a _pointer_ to the array, but then that's a pointer to an array, not an array.) One way to think about arrays is as a sort of struct but with indexed rather than named fields: a fixed-size composite value.
+Goの配列は値です。配列変数は配列全体を示しています。（Cのように）最初の配列要素を指すポインタではありません。これは配列の値を割り当てたり分配するとき、その内容のコピーを作ることを意味しています（コピーを避けるために配列に*ポインタ*を渡すことができますが、それは配列ではなく配列へのポインタになります）。配列は、名前付けられたフィールドというよりインデックス付けされた構造体の一種、すなわち固定長の複合値として考えられます。
 
-An array literal can be specified like so:
+配列のリテラルは以下のように書けます:
 
 ```
 b := [2]string{"Penn", "Teller"}
 ```
 
-Or, you can have the compiler count the array elements for you:
+また、配列の要素数の記述をコンパイラに任せることもできます:
 
 ```
 b := [...]string{"Penn", "Teller"}
 ```
 
-In both cases, the type of `b` is `[2]string`.
+どちらの場合でも、`b` の型は `[2]string` です。
 
 ## スライス
 
-Arrays have their place, but they're a bit inflexible, so you don't see them too often in Go code. Slices, though, are everywhere. They build on arrays to provide great power and convenience.
+配列は自身の地位を獲得していますが、少し柔軟性に欠けるのでGoコードでは配列をあまり見ることはないでしょう。一方で、スライスはいたるところで見かけるでしょう。スライスは巨大な力や便利さを提供するため配列を元にしています。
 
-The type specification for a slice is `[]T`, where `T` is the type of the elements of the slice. Unlike an array type, a slice type has no specified length.
+スライスの型指定は `[]T` で行い、`T` はスライスの要素の型です。配列型と違い、スライス型には明示的な長さがありません。
 
-A slice literal is declared just like an array literal, except you leave out the element count:
+スライスのリテラルは、配列の要素数を除いてちょうど配列のリテラルのように宣言されます:
 
 ```
 letters := []string{"a", "b", "c", "d"}
 ```
 
-A slice can be created with the built-in function called `make`, which has the signature,
+スライスは `make` と呼ばれるシグネチャを持ったビルトイン関数を用いて作ることができます、
 
 ```
 func make([]T, len, cap) []T
 ```
 
-where T stands for the element type of the slice to be created. The `make` function takes a type, a length, and an optional capacity. When called, `make` allocates an array and returns a slice that refers to that array.
+ここでTは作成するスライスの要素型を表しています。`make` 関数は型、長さ、そしてオプションで容量を引数に取ります。`make` が呼ばれると、配列をアロケートし、配列を参照するスライスを返します。
 
 ```
 var s []byte
@@ -77,31 +77,31 @@ s = make([]byte, 5, 5)
 // s == []byte{0, 0, 0, 0, 0}
 ```
 
-When the capacity argument is omitted, it defaults to the specified length. Here's a more succinct version of the same code:
+引数の容量が省略されると、指定した長さがデフォルトで設定されます。以下は同じコードのより簡潔なバージョンです:
 
 ```
 s := make([]byte, 5)
 ```
 
-The length and capacity of a slice can be inspected using the built-in `len` and `cap` functions.
+スライスの長さと容量はビルトイン関数の `len` と `map` を用いて調べることができます。
 
 ```
 len(s) == 5
 cap(s) == 5
 ```
 
-The next two sections discuss the relationship between length and capacity.
+続く2つの節では、長さと容量の関係について議論していきます。
 
-The zero value of a slice is `nil`. The `len` and `cap` functions will both return 0 for a nil slice.
+スライスのゼロ値は `nil` です。スライスがnilの場合、`len` と `cap` 関数は両方とも0を返します。
 
-A slice can also be formed by "slicing" an existing slice or array. Slicing is done by specifying a half-open range with two indices separated by a colon. For example, the expression `b[1:4]` creates a slice including elements 1 through 3 of `b` (the indices of the resulting slice will be 0 through 2).
+スライスは既にあるスライスや配列を"スライシング"することによって作ることもできます。スライシングはコロンによって区切られた2のインデックスを用いた半開区間を明示することによって行われます。例えば、式 `b[1:4]` は `b` の1から3番目の要素を含むスライスを作ります（結果のスライスのインデックスは0から2までです）。
 
 ```
 b := []byte{'g', 'o', 'l', 'a', 'n', 'g'}
 // b[1:4] == []byte{'o', 'l', 'a'}, sharing the same storage as b
 ```
 
-The start and end indices of a slice expression are optional; they default to zero and the slice's length respectively:
+スライスの最初と最後のインデックスはオプションです。それらはデフォルトではそれぞれ0とスライスの長さ設定されます:
 
 ```
 // b[:2] == []byte{'g', 'o'}
@@ -109,26 +109,26 @@ The start and end indices of a slice expression are optional; they default to ze
 // b[:] == b
 ```
 
-This is also the syntax to create a slice given an array:
+これも配列を与えてスライスを作るための構文です:
 
 ```
 x := [3]string{"Лайка", "Белка", "Стрелка"}
 s := x[:] // a slice referencing the storage of x
 ```
 
-## スライスの内部構造
+## スライスの内部詳細
 
-A slice is a descriptor of an array segment. It consists of a pointer to the array, the length of the segment, and its capacity (the maximum length of the segment).
+スライスは配列セグメントの記述子です。記述子は、配列へのポインタptr、セグメント長len、スライスの容量cap（セグメントの最大長）を含んでいます。
 
 ![go-slices-usage-and-internals_slice-struct](./go-slices-usage-and-internals_slice-struct.png)
 
-Our variable `s`, created earlier by `make([]byte,`5)`, is structured like this:
+少し前に `make([]byte, 5)` により作った変数 `s` はこのような構成になっています:
 
 ![go-slices-usage-and-internals_slice-1](./go-slices-usage-and-internals_slice-1.png)
 
-The length is the number of elements referred to by the slice. The capacity is the number of elements in the underlying array (beginning at the element referred to by the slice pointer). The distinction between length and capacity will be made clear as we walk through the next few examples.
+長さはスライスによって参照される要素の数です。容量は（スライスのポインタが参照する要素から始まる）元の配列の要素の数です。長さと容量の違いは、次のいくつかの例を通して明らかになるでしょう。
 
-As we slice `s`, observe the changes in the slice data structure and their relation to the underlying array:
+`s` をスライスして、スライスデータの構造や元の配列との関係の変化を観察します:
 
 ```
 s = s[2:4]
@@ -136,7 +136,7 @@ s = s[2:4]
 
 ![go-slices-usage-and-internals_slice-2](./go-slices-usage-and-internals_slice-2.png)
 
-Slicing does not copy the slice's data. It creates a new slice value that points to the original array. This makes slice operations as efficient as manipulating array indices. Therefore, modifying the _elements_ (not the slice itself) of a re-slice modifies the elements of the original slice:
+スライシングではスライスデータをコピーしません。元の配列を指し示す新しいスライス値を作ります。これは配列のインデックス操作と同じくらい効率的なスライス操作を作ります。したがって、スライシングによるスライスの*要素*（スライス自身ではありません）を書き換えると元のスライスの要素も書き換わります:
 
 ```
 d := []byte{'r', 'o', 'a', 'd'}
@@ -147,7 +147,7 @@ e[1] = 'm'
 // d == []byte{'r', 'o', 'a', 'm'}
 ```
 
-Earlier we sliced `s` to a length shorter than its capacity. We can grow s to its capacity by slicing it again:
+以前私たちは `s` をその容量より小さな長さでスライスしました。私たちは再びスライシングすることによってsをその容量まで大きくすることができます:
 
 ```
 s = s[:cap(s)]
@@ -156,6 +156,8 @@ s = s[:cap(s)]
 ![go-slices-usage-and-internals_slice-3](./go-slices-usage-and-internals_slice-3.png)
 
 A slice cannot be grown beyond its capacity. Attempting to do so will cause a runtime panic, just as when indexing outside the bounds of a slice or array. Similarly, slices cannot be re-sliced below zero to access earlier elements in the array.
+
+スライスはその容量を超えて大きくすることはできません。もしそうした場合、スライスや配列の範囲外を参照したときのようにランタイムパニックが起こるでしょう。同じように、配列の最初の要素より前にアクセスするためにスライスを0以下に再スライスすることはできません。
 
 ## スライスを大きくする（コピー・アペンド関数）
 
@@ -284,9 +286,11 @@ func CopyDigits(filename string) []byte {
 
 A more concise version of this function could be constructed by using `append`. This is left as an exercise for the reader.
 
-## さらに読む
+## 関連記事
 
 [Effective Go](http://golang.org/doc/effective_go.html) contains an in-depth treatment of [slices](http://golang.org/doc/effective_go.html#slices) and [arrays](http://golang.org/doc/effective_go.html#arrays), and the Go [language specification](http://golang.org/doc/go_spec.html) defines [slices](http://golang.org/doc/go_spec.html#Slice_types) and their [associated](http://golang.org/doc/go_spec.html#Length_and_capacity) [helper](http://golang.org/doc/go_spec.html#Making_slices_maps_and_channels) [functions](http://golang.org/doc/go_spec.html#Appending_and_copying_slices).
+
+[Effective Go](http://golang.org/doc/effective_go.html) には [スライス](http://golang.org/doc/effective_go.html#slices) や [配列](http://golang.org/doc/effective_go.html#arrays) の詳細な扱い方が載っており、Go [Language Specification](http://golang.org/doc/go_spec.html) では [スライス](http://golang.org/doc/go_spec.html#Slice_types) とそれに [関連した](http://golang.org/doc/go_spec.html#Length_and_capacity) [ヘルパー](http://golang.org/doc/go_spec.html#Making_slices_maps_and_channels) [関数](http://golang.org/doc/go_spec.html#Appending_and_copying_slices) が定義されています。
 
 ## あわせて読みたい
 
