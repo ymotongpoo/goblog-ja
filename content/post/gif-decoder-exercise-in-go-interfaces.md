@@ -104,8 +104,6 @@ deblockingReader := &blockReader{r: imageFile}
 
 ## ピースを繋げる
 
-With `blockReader` implemented and the LZW compressor available from the library, we have all the pieces we need to decode the image data stream.  We stitch them together with this thunderclap, straight from the code:
-
 `blockReader` の実装とライブラリから利用可能なLZWコンプレッサにより、画像データストリームをデコードするために必要なピースが全て揃いました。私たちはコードから真っ直ぐに伸びたこの衝撃ともにそれら紡ぎ合わせます:
 
 ```
