@@ -36,7 +36,7 @@ GIF画像は1ピクセル当たり1から8ビットの値をとることがで�
 
 ## ピクセルデータのデブロッキング
 
-GIFのピクセルデータをGoでデコードするために、私たちは `compress/lzw` パッケージからLZWデコンプレッサを使うことができます。そのパッケージには、[ドキュメント](http://golang.org/pkg/compress/lzw/#NewReader)曰く、「rからデータ読み出し解凍するための読み出し可能な」オブジェクトを返すNewReader関数があります。
+GIFのピクセルデータをGoでデコードするために、私たちは `compress/lzw` パッケージからLZWデコンプレッサを使うことができます。そのパッケージには、[ドキュメント](http://golang.org/pkg/compress/lzw/#NewReader)曰く、「rから読み出したデータを解凍することによって読み出し可能となる」オブジェクトを返すNewReader関数があります。
 
 ```
 func NewReader(r io.Reader, order Order, litWidth int) io.ReadCloser
