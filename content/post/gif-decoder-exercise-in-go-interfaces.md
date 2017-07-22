@@ -3,49 +3,50 @@ date = "2011-05-25T00:07:38+09:00"
 title = "GIFデコーダ: Goインターフェースの練習（A GIF decoder: an exercise in Go interfaces）"
 draft = false
 tags = ["gif", "gopher", "image", "interface", "lagomorph", "lzw", "moustache", "rodent", "technical"]
++++
 
 # GIFデコーダ: Goインターフェースの練習
 [A GIF decoder: an exercise in Go interfaces](https://blog.golang.org/gif-decoder-exercise-in-go-interfaces) by Rob Pike
 
 ## はじめに
 
-At the Google I/O conference in San Francisco on May 10, 2011, we announced that the Go language is now available on Google App Engine.  Go is the first language to be made available on App Engine that compiles directly to machine code, which makes it a good choice for CPU-intensive tasks such as image manipulation.
+2011年5月10日にサンフランシスコで行われたGoogle I/Oのカンファレンスで、私たちはGo言語がGoogle App Engineで利用可能になったことを発表しました。Goは機械語に直接コンパイルするApp Engine上で利用可能となった最初の言語で、画像処理のようなCPUに負荷をかけるタスクにとってそれは良い選択でした。
 
-In that vein, we demonstrated a program called [Moustachio](http://moustach-io.appspot.com/) that makes it easy to improve a picture such as this one:
+その流れで、私たちは以下のような画像を手軽により良くする [Moustachio](http://moustach-io.appspot.com/) と呼ばれるプログラムを実演しました:
 
 ![gif-decoder-exercise-in-go-interfaces_image00](./gif-decoder-exercise-in-go-interfaces_image00.jpg)
 
-by adding a moustache and sharing the result:
+髭を加えて、その結果を共有しましょう:
 
 ![gif-decoder-exercise-in-go-interfaces_image02](./gif-decoder-exercise-in-go-interfaces_image02.jpg)
 
-All the graphical processing, including rendering the antialiased moustache, is done by a Go program running on App Engine. (The source is available at [the appengine-go project](http://code.google.com/p/appengine-go/source/browse/example/moustachio/).)
+アンチエイリアスが施された髭の描画を含む全てのグラフィック処理は、App Engine上で動作しているGoプログラムで完結します。（そのソースコードは [appengine-goプロジェクト](http://code.google.com/p/appengine-go/source/browse/example/moustachio/) で利用可能です。）
 
-Although most images on the web—at least those likely to be moustachioed—are JPEGs, there are countless other formats floating around, and it seemed reasonable for Moustachio to accept uploaded images in a few of them. JPEG and PNG decoders already existed in the Go image library, but the venerable GIF format was not represented, so we decided to write a GIF decoder in time for the announcement. That decoder contains a few pieces that demonstrate how Go's interfaces make some problems easier to solve. The rest of this blog post describes a couple of instances.
+Web上のほとんどの画像 - 少なくとも髭加工される可能性のある - がJPEGであるにも関わらず、ほかにも数えきれないほど広まっている画像形式があり、そしてアップロードされた数種類の画像形式を受け入れるのでそれは髭にとってもの分かりが良いように見えます。JPEGとPNGのデコーダはすでにGoの画像ライブラリの中にありましたが、昔からあるGIF形式のデコーダはなかったので、私たちは発表に間に合うようにGIFデコーダを書くとこにしました。そのデコーダは、問題解決のためにGoのインターフェースがどのようにしてその問題をより扱いやすくしているのかを示すいくつかのピースを含んでいます。このブログ記事の残りの部分ではその2、3個の例を述べています。
 
 ## GIFのフォーマット
 
-First, a quick tour of the GIF format.  A GIF image file is _paletted_, that is, each pixel value is an index into a fixed color map that is included in the file. The GIF format dates from a time when there were usually no more than 8 bits per pixel on the display, and a color map was used to convert the limited set of values into the RGB (red, green, blue) triples needed to light the screen. (This is in contrast to a JPEG, for example, which has no color map because the encoding represents the distinct color signals separately.)
+まず初めに、GIFの形式について簡単に見ていきましょう。GIFの画像ファイルは*パレット化*されており、つまりそれぞれのピクセル値はファイルに含まれているある決まったカラーマップにインデックス付けされています。ディスプレイの1ピクセルがたった8ビットで表されていた頃からGIF形式はあり、カラーマップは値の制限された組をスクリーンを明るくするために必要なRGB（赤、緑、青）の3値に変換するために使われていました。（これはJPEGとは対称的で、例えば、JPEGはエンコーダが直接カラー信号の分離を表現するためJPEGにはカラーマップはありません。）
 
-A GIF image can contain anywhere from 1 to 8 bits per pixel, inclusive, but 8 bits per pixel is the most common.
+GIF画像は1ピクセル当たり1から8ビットの値をとることができ、包括的ですが、1ピクセルあたり8ビットが最も使われています。
 
-Simplifying somewhat, a GIF file contains a header defining the pixel depth and image dimensions, a color map (256 RGB triples for an 8-bit image), and then the pixel data.  The pixel data is stored as a one-dimensional bit stream, compressed using the LZW algorithm, which is quite effective for computer-generated graphics although not so good for photographic imagery. The compressed data is then broken into length-delimited blocks with a one-byte count (0-255) followed by that many bytes:
+少し単純化すると、GIFファイルはピクセル深度、画像の次元、カラーマップ（1枚の8ビット画像あたり256色のRGB値）をそれぞれ定義するヘッダーと、次いでピクセルデータを含んでいます。ピクセルデータは1次元のビットストリームとして格納され、写真には向きませんがコンピュータが生成するグラフィックスにとってはかなり効率的なLZWアルゴリズムを使って圧縮されます。そのとき圧縮データはある長さで区切られ、1バイトのカウント（0-255）とそれに続くバイト列という構成のブロックに分割されます:
 
 ![gif-decoder-exercise-in-go-interfaces_image03](./gif-decoder-exercise-in-go-interfaces_image03.gif)
 
-## ピクセルデータのデブロッキング化
+## ピクセルデータのデブロッキング
 
-To decode GIF pixel data in Go, we can use the LZW decompressor from the `compress/lzw` package. It has a NewReader function that returns an object that, as [the documentation](http://golang.org/pkg/compress/lzw/#NewReader) says, "satisfies reads by decompressing the data read from r":
+GIFのピクセルデータをGoでデコードするために、私たちは `compress/lzw` パッケージからLZWデコンプレッサを使うことができます。そのパッケージには、[ドキュメント](http://golang.org/pkg/compress/lzw/#NewReader)曰く、「rからデータ読み出し解凍するための読み出し可能な」オブジェクトを返すNewReader関数があります。
 
 ```
 func NewReader(r io.Reader, order Order, litWidth int) io.ReadCloser
 ````
 
-Here `order` defines the bit-packing order and `litWidth` is the word size in bits, which for a GIF file corresponds to the pixel depth, typically 8.
+ここで、`order`はビットデータをパックする順番を定義し、`litWidth`はGIFファイルとピクセル深度（典型的には8）を対応させる際に使用するビット単位のワードサイズを意味しています。
 
-But we can't just give `NewReader` the input file as its first argument because the decompressor needs a stream of bytes but the GIF data is a stream of blocks that must be unpacked. To address this problem, we can wrap the input `io.Reader` with some code to deblock it, and make that code again implement `Reader`. In other words, we put the deblocking code into the `Read` method of a new type, which we call `blockReader`.
+しかし私たちは、`NewReader` の最初の引数として入力ファイルを与えることはできません。それはデコンプレッサがバイトストリームを要求しているにも関わらずGIFデータはアンパックが必要なブロックストリームになっているからです。この問題を扱うために、私たちはそれをデブロッキングするためのちょっとしたコードにより入力 `io.Reader` をラップすることができます。さらにそのコードを再び `Reader` として実装することもできます。つまり、私たちはデブロッキングするコードを `blockReader` と呼ばれる新しい型の `Read` メソッドの中で実装します。
 
-Here's the data structure for a `blockReader`.
+以下は `blockReader` のデータ構造です。
 
 ```
 type blockReader struct {
@@ -55,7 +56,7 @@ type blockReader struct {
 }
 ```
 
-The reader, `r`, will be the source of the image data, perhaps a file or HTTP connection.  The `slice` and `tmp` fields will be used to manage the deblocking. Here's the `Read` method in its entirety. It's a nice example of the use of slices and arrays in Go.
+リーダー `r` は画像データのソースであり、そのソースは恐らくファイルかHTTP接続でしょう。`slice` と `tmp` フィールドはデブロッキングを管理するために使われます。以下は `Read` メソッドの全体像です。
 
 ```
 1  func (b *blockReader) Read(p []byte) (int, os.Error) {
@@ -67,43 +68,45 @@ The reader, `r`, will be the source of the image data, perhaps a file or HTTP co
 7          if err != nil {
 8              return 0, err
 9          }
-10          if blockLen == 0 {
-11              return 0, os.EOF
-12          }
-13          b.slice = b.tmp[0:blockLen]
-14          if _, err = io.ReadFull(b.r, b.slice); err != nil {
-15              return 0, err
-16          }
-17      }
-18      n := copy(p, b.slice)
-19      b.slice = b.slice[n:]
-20      return n, nil
-21  }
+10         if blockLen == 0 {
+11             return 0, os.EOF
+12         }
+13         b.slice = b.tmp[0:blockLen]
+14         if _, err = io.ReadFull(b.r, b.slice); err != nil {
+15             return 0, err
+16         }
+17     }
+18     n := copy(p, b.slice)
+19     b.slice = b.slice[n:]
+20     return n, nil
+21 }
 ```
 
-Lines 2-4 are just a sanity check: if there's no place to put data, return zero.  That should never happen, but it's good to be safe.
+2-4行目はちょうどサニティーチェック（異常がないかの確認）に当たります: データを置くところがなければ0を返す。起こり得ないですが、念のためです。
 
-Line 5 asks if there's data left over from a previous call by checking the length of `b.slice`.  If there isn't, the slice will have length zero and we need to read the next block from `r`.
+5行目は `b.slice` の長さを確認することによって前回の呼び出しから左側にデータがあるかどうかを訊ねています。もしなければ、スライスの長さは0であり、私たちは `r` から次のブロックを読み出す必要があります。
 
-A GIF block starts with a byte count, read on line 6.  If the count is zero, GIF defines this to be a terminating block, so we return `EOF` on line 11.
+GIFブロックは1バイトのカウントで始まり、6行目で読み出しています。もしカウントが0であれば、GIFは、最後のブロックになったためにこれを定義します。したがって `EOF` を11行目で返します。
 
-Now we know we should read `blockLen` bytes, so we point `b.slice` to the first `blockLen` bytes of `b.tmp` and then use the helper function `io.ReadFull` to read that many bytes.  That function will return an error if it can't read exactly that many bytes, which should never happen.  Otherwise we have `blockLen` bytes ready to read.
+今、私たちは `blockLen` バイト読むべきだと分かっています。ですので、`b.tmp` の最初の `blockLen` バイトが `b.slice` を指すようにし、たくさんのバイトデータ読み出すためにヘルパー関数 `io.ReadFull` を使います。
 
-Lines 18-19 copy the data from `b.slice` to the caller's buffer. We are implementing `Read`, not `ReadFull`, so we are allowed to return fewer than the requested number of bytes.  That makes it easy: we just copy the data from `b.slice` to the caller's buffer (`p`), and the return value from copy is the number of bytes transferred.  Then we reslice `b.slice` to drop the first `n` bytes, ready for the next call.
+18-19行目は `b.slice` から呼び出し側（訳注：レシーバー `b` のこと）のバッファに対しデータをコピーします。私たちは `Read` を実装していますが、`ReadFull` は実装していないので、私たちは要求されたバイト数よりも少ないバイト数を返すことを許可されています。それを実装するのは簡単です: `b.slice` から呼び出し側のバッファ（`p`）にデータをコピーし、コピー関数からの戻り値がコピーされたバイト数です。そのとき最初の `n` バイトを切り落とすために `b.slice` をリサイズし、次の呼び出しに備えています。
 
-It's a nice technique in Go programming to couple a slice (`b.slice`) to an array (`b.tmp`).  In this case, it means `blockReader` type's `Read` method never does any allocations. It also means we don't need to keep a count around (it's implicit in the slice length), and the built-in `copy` function guarantees we never copy more than we should. (For more about slices, see [this post from the Go Blog](http://blog.golang.org/2011/01/go-slices-usage-and-internals.html).)
+スライス（`b.slice`）を配列（`b.tmp`）に結びつけて考えるのはGoプログラミングにおいては良いテクニックです。この場合、`blockReader` 型の `Read` メソッドは決して全てをアロケーションしないということを意味しています。私たちがカウント周り（スライス長に暗に示されています）を管理する必要がないことも意味しており、ビルトインの `copy` 関数が私たちがこれ以上コピーしないことを保証しています。（スライスについてより詳しく知りたい場合は、[the Go Blog のこの記事](http://blog.golang.org/2011/01/go-slices-usage-and-internals.html)をご覧ください。）
 
-Given the `blockReader` type, we can unblock the image data stream just by wrapping the input reader, say a file, like this:
+`blockReader` 型が与えられると、私たちは画像データストリームを入力リーダーをラップすることによりアンパックできます。ファイルについてはこのようになります:
 
 ```
 deblockingReader := &blockReader{r: imageFile}
 ```
 
-This wrapping turns a block-delimited GIF image stream into a simple stream of bytes accessible by calls to the `Read` method of the `blockReader`.
+このラッピングはブロックに区切られたGIF画像ストリームを `blockReader` の `Read` メソッドを呼び出すことにより利用可能な単純なバイトストリームに変換します。
 
 ## ピースを繋げる
 
 With `blockReader` implemented and the LZW compressor available from the library, we have all the pieces we need to decode the image data stream.  We stitch them together with this thunderclap, straight from the code:
+
+`blockReader` の実装とライブラリから利用可能なLZWコンプレッサにより、画像データストリームをデコードするために必要なピースが全て揃いました。私たちはコードから真っ直ぐに伸びたこの衝撃ともにそれら紡ぎ合わせます:
 
 ```
 lzwr := lzw.NewReader(&blockReader{r: d.r}, lzw.LSB, int(litWidth))
@@ -112,25 +115,25 @@ if _, err = io.ReadFull(lzwr, m.Pix); err != nil {
 }
 ```
 
-That's it.
+以上です。
 
-The first line creates a `blockReader` and passes it to `lzw.NewReader` to create a decompressor.  Here `d.r` is the `io.Reader` holding the image data, `lzw.LSB` defines the byte order in the LZW decompressor, and `litWidth` is the pixel depth.
+最初の行は `blockReader` を作り、デコンプレッサを作るためにそれを `lzw.NewReader` に通します。ここで、`d.r` は画像データを保持する `io.Reader` で、`lzw.LSB` はLZWデコンプレッサ内でのバイトオーダーを定義し、`litWidth` はピクセル深度です。
 
-Given the decompressor, the second line calls `io.ReadFull` to decompress the data and store it in the image, `m.Pix`. When `ReadFull` returns, the image data is decompressed and stored in the image, `m`, ready to be displayed.
+解析器が与えられると、次の行ではデータを解凍するための `io.ReadFull` を呼び出し、それを画像 `m.Pix` に格納しています。`ReadFull` から戻ると、画像データは解凍され表示可能な画像 `m` に格納されます。
 
-This code worked first time. Really.
+このコードはまず初めに動作します。本当です。
 
-We could avoid the temporary variable `lzwr` by placing the `NewReader` call into the argument list for `ReadFull`, just as we built the `blockReader` inside the call to `NewReader`, but that might be packing too much into a single line of code.
+`NewReader` 呼び出しをちょうど `blockReader` を `NewReader` 呼び出しの中で組み立てたように、`ReadFull` の引数リストに置くことで私たちは一時変数 `lzwr` を避けることができますが、1行のコードに詰め過ぎかもしれません。
 
 ## 結論
 
-Go's interfaces make it easy to construct software by assembling piece parts like this to restructure data.  In this example, we implemented GIF decoding by chaining together a deblocker and a decompressor using the `io.Reader` interface, analogous to a type-safe Unix pipeline. Also, we wrote the deblocker as an (implicit) implementation of a `Reader` interface, which then required no extra declaration or boilerplate to fit it into the processing pipeline. It's hard to implement this decoder so compactly yet cleanly and safely in most languages, but the interface mechanism plus a few conventions make it almost natural in Go.
+データを再構築するためにこのように部品を組み立てることにより、Goのインターフェースはソフトウェアを組み立てやすくします。この例では、型安全なUnixパイプラインのように私たちはデブロッカーと `io.Reader` インターフェースを用いたデコンプレッサを一緒に繋ぎ合わせGIFデコーダを実装しました。さらに私たちは暗に示された `Reader` インターフェースの実装としてデブロッカーも書き、そのときはパイプライン処理に合うような外部宣言や雛形を必要としませんでした。ほとんどの言語においてとてもコンパクトに、それでもなお綺麗にそして安全にこのデコーダを実装するのは難しいですが、そのインターフェース機構はGoでほとんど自然にそれを作る約束事を減らすことに対しプラスとなります。
 
-That deserves another picture, a GIF this time:
+それは他の写真（この場合GIF）に対しても価値があります:
 
 ![gif-decoder-exercise-in-go-interfaces_image01](./gif-decoder-exercise-in-go-interfaces_image01.gif)
 
-The GIF format is defined at [http://www.w3.org/Graphics/GIF/spec-gif89a.txt](http://www.w3.org/Graphics/GIF/spec-gif89a.txt).
+GIFの形式は [http://www.w3.org/Graphics/GIF/spec-gif89a.txt](http://www.w3.org/Graphics/GIF/spec-gif89a.txt) で定義されています。
 
 *By Rob Pike*
 
