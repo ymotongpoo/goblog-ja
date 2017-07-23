@@ -1,29 +1,28 @@
 +++
 date = "2011-03-24T21:12:42+09:00"
-title = "HTTP/2 Server Push"
+title = "HTTP/2 サーバプッシュ（HTTP/2 Server Push）"
 draft = false
 tags = ["http", "technical"]
 +++
 
-# HTTP/2 Server Push
+# HTTP/2 サーバプッシュ
 ["HTTP/2 Server Push"](https://blog.golang.org/h2push) by Jaana Burcu Dogan, Tom Bergan
 
 ## はじめに
 
-HTTP/2 is designed to address many of the failings of HTTP/1.x. Modern web pages use many resources: HTML, stylesheets, scripts, images, and so on. In HTTP/1.x, each of these resources must
-be requested explicitly. This can be a slow process. The browser starts by fetching the HTML, then learns of more resources incrementally as it parses and evaluates the page. Since the server must wait for the browser to make each request, the network is often idle and underutilized.
+HTTP/2 は HTTP/1.x における多くの欠点を扱うために設計されています。現代の Web ページは多くのリソースを使用します: HTML、スタイルシート、スクリプト、画像、など。HTTP/1.x では、そのリソースそれぞれが明示的にリクエストされなければなりませんでした。これでは処理が遅くなります。ブラウザが HTML を取得し始めると、ページをパースして評価するときに初めて追加のリソースが必要であると認識します。サーバはブラウザがそれぞれのリクエストを生成するのを待たないといけないので、ネットワークは頻繁にアイドル状態となり活動を休止します。
 
-To improve latency, HTTP/2 introduced _server_push_, which allows the server to push resources to the browser before they are explicitly requested. A server often knows many of the additional resources a page will need and can start pushing those resources as it responds to the initial request. This allows the server to fully utilize an otherwise idle network and improve page load times.
+遅延を改善するために HTTP/2 は、ブラウザが明示的にリソースをリクエストする前にサーバがブラウザに対しリソースをプッシュできる*サーバプッシュ*を導入しました、サーバはページが沢山の追加リソースを頻繁に必要とすることを分かっているため、最初の要求に対するレスポンスとしてそれらのリソースをプッシュし始めることができます。これでサーバがアイドル状態のネットワークを十分に活用でき、ページのロード時間を改善できます。
 
 ![h2push/serverpush](./h2push/serverpush.svg)
 
-At the protocol level, HTTP/2 server push is driven by `PUSH_PROMISE` frames. A `PUSH_PROMISE` describes a request that the server predicts the browser will make in the near future. As soon as the browser receives a `PUSH_PROMISE`, it knows that the server will deliver the resource. If the browser later discovers that it needs this resource, it will wait for the push to complete rather than sending a new request. This reduces the time the browser spends waiting on the network.
+プロトコルのレベルでは、HTTP/2 サーバプッシュは `PUSH_PROMISE` フレームドリブンです。`PUSH_PROMISE` はブラウザが近い将来リクエストするとサーバが予測するリクエストを記述します。ブラウザが`PUSH_PROMISE` を受け取るとすぐに、サーバがそのリソースを届けるつもりであるとブラウザは理解します。ブラウザがこのリソースが必要であると遅れて気づいた場合は、ブラウザは新しいリクエストを送らずにプッシュが完了するのを待つでしょう。
 
-## net/http における Server Push
+## net/http におけるサーバプッシュ
 
-Go 1.8 introduced support for pushing responses from an [`http.Server`](https://golang.org/pkg/net/http/#Server). This feature is available if the running server is an HTTP/2 server and the incoming connection uses HTTP/2. In any HTTP handler, you can assert if the http.ResponseWriter supports server push by checking if it implements the new [`http.Pusher`](https://golang.org/pkg/net/http/#Pusher) interface.
+Go1.8は [`http.Server`](https://golang.org/pkg/net/http/#Server) からのレスポンスをプッシュするためのサポートを導入しました。この特徴は動作中のサーバが HTTP/2 サーバであり HTTP/2 を使用するコネクションが来た場合に利用されます。任意の HTTP ハンドラの中で、http.ResponseWriter が新しい [`http.Pusher`](https://golang.org/pkg/net/http/#Pusher) インターフェースを実装しているか確認することによりサーバプッシュをサポートしているかどうか、あなたは強く主張することができます。
 
-For example, if the server knows that `app.js` will be required to render the page, the handler can initiate a push if `http.Pusher` is available:
+例えば、ページを描画するのに `app.js` が要求されるだろうとサーバが分かっている場合、ハンドラは `http.Pusher` が利用であればプッシュを開始することができます:
 
 ```
 http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +36,7 @@ http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 })
 ```
 
-The Push call creates a synthetic request for `/app.js`, synthesizes that request into a `PUSH_PROMISE` frame, then forwards the synthetic request to the server's request handler, which will generate the pushed response. The second argument to Push specifies additional headers to include in the `PUSH_PROMISE`. For example, if the response to `/app.js` varies on Accept-Encoding, then the `PUSH_PROMISE` should include an Accept-Encoding value:
+Push 呼び出しは `/app.js` のための統合リクエストを作成し、`PUSH_PROMISE` フレームの中にそのリクエストを統合し、統合リクエストをプッシュされるレスポンスを生成するサーバのリクエストハンドラに転送します。Push の2つ目の引数は `PUSH_PROMISE` に含める追加のヘッダを明示します。例えば、`/app.js` へのレスポンスが Accept-Encoding よって異なる場合、`PUSH_PROMISE` は Accept-Encoding 値を含むべきです:
 
 ```
 http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -56,18 +55,17 @@ http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 })
 ```
 
-A fully working example is available at:
+完全な動作例は以下のコマンドで利用可能です:
 
 ```
 $ go get golang.org/x/blog/content/h2push/server
 ```
 
-If you run the server and load [https://localhost:8080](https://localhost:8080),
-your browser's developer tools should show that `app.js` and `style.css` were pushed by the server.
+サーバを動作させ [https://localhost:8080](https://localhost:8080) をロードすると、ブラウザの開発者ツールには `app.js` と `style.css` がサーバからプッシュされたと表示されるはずです。
 
 ![h2push/networktimeline](./h2push/networktimeline.png)
 
-## 応答する前にPushし始める
+## レスポンスの前にプッシュし始める
 
 It's a good idea to call the Push method before sending any bytes of the response. Otherwise it is possible to accidentally generate duplicate responses. For example, suppose you write part of an HTML response:
 
@@ -79,7 +77,7 @@ It's a good idea to call the Push method before sending any bytes of the respons
 
 Then you call Push("a.css", nil). The browser may parse this fragment of HTML before it receives your PUSH_PROMISE, in which case the browser will send a request for `a.css` in addition to receiving your `PUSH_PROMISE`. Now the server will generate two responses for `a.css`. Calling Push before writing the response avoids this possibility entirely.
 
-## Server Push の使い時
+## サーバプッシュの使い時
 
 Consider using server push any time your network link is idle. Just finished sending the HTML for your web app? Don't waste time waiting, start pushing the resources your client will need. Are you inlining resources into your HTML file to reduce latency? Instead of inlining, try pushing. Redirects are another good time to use push because there is almost always a wasted round trip while the client follows the redirect. There are many possible scenarios for using push -- we are only getting started.
 
@@ -96,9 +94,9 @@ The following links make for good supplemental reading:
 
 ## 結論
 
-With Go 1.8, the standard library provides out-of-the-box support for HTTP/2 Server Push, giving you more flexibility to optimize your web applications.
+Go1.8では、標準ライブラリは HTTP/2 のための独創的なサポートを提供しており、あなたの Web アプリケーションを最適化できるようさらなる柔軟性を与えます。
 
-Go to our [HTTP/2 Server Push demo](https://http2.golang.org/serverpush) page to see it in action.
+[HTTP/2 サーバプッシュデモ](https://http2.golang.org/serverpush) ページではそれが実際に動作する様子を見ることができます。
 
 ## あわせて読みたい
 * [HTTP/2 Push: The Details](https://calendar.perfplanet.com/2016/http2-push-the-details/)
