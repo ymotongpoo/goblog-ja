@@ -67,7 +67,7 @@ $ go get golang.org/x/blog/content/h2push/server
 
 ## レスポンスの前にプッシュし始める
 
-It's a good idea to call the Push method before sending any bytes of the response. Otherwise it is possible to accidentally generate duplicate responses. For example, suppose you write part of an HTML response:
+レスポンスの任意のバイトを送る前に Push メソッドの呼び出しを行うことは良いアイデアです。一方で、誤ってレスポンスの複製を作成することも可能です。例えば、HTML レスポンスの一部をあなたは書いていたとします:
 
 ```
 <html>
@@ -75,15 +75,15 @@ It's a good idea to call the Push method before sending any bytes of the respons
     <link rel="stylesheet" href="a.css">...
 ```
 
-Then you call Push("a.css", nil). The browser may parse this fragment of HTML before it receives your PUSH_PROMISE, in which case the browser will send a request for `a.css` in addition to receiving your `PUSH_PROMISE`. Now the server will generate two responses for `a.css`. Calling Push before writing the response avoids this possibility entirely.
+そのとき、あなたは Push("a.css", nil) を呼びます。ブラウザは PUSH_PROMISE を受け取る前にこの HTML 片をパースするかもしれません、その場合ブラウザは `PUSH_PROMISE` を受け取るほか、`a.css` 用のリクエストを送るでしょう。今回サーバは `a.css` 用のレスポンスを2つ生成するでしょう。レスポンスを記述する前に Push を呼ぶことはこの可能性全体を無効にします。
 
 ## サーバプッシュの使い時
 
-Consider using server push any time your network link is idle. Just finished sending the HTML for your web app? Don't waste time waiting, start pushing the resources your client will need. Are you inlining resources into your HTML file to reduce latency? Instead of inlining, try pushing. Redirects are another good time to use push because there is almost always a wasted round trip while the client follows the redirect. There are many possible scenarios for using push -- we are only getting started.
+あなたのネットワークリンクがアイドル状態のときにサーバプッシュを使うことを考えてみましょう。あなたの Web アプリのために HTML を送り終えたかりですよね？待ちによって時間を浪費しないで、あなたのクライアントが必要とするリソースをプッシュし始めましょう。あなたは遅延を減らすために HTML ファイルの中にリソースをインラインしているでしょうか？インラインの代わりに、プッシュしてみましょう。クライアントがリダイレクトを追う間は常に無駄な往復が発生するので、リダイレクトはプッシュを使用するもう一つの良い機会です。プッシュを使用する多くのシナリオが考えられます -- 私たちは取り組み始めたばかりです。
 
-We would be remiss if we did not mention a few caveats. First, you can only push resources your server is authoritative for -- this means you cannot push resources that are hosted on third-party servers or CDNs. Second, don't push resources unless you are confident they are actually needed by the client, otherwise your push wastes bandwidth. A corollary is to avoid pushing resources when it's likely that the client already has those resources cached. Third, the naive approach of pushing all resources on your page often makes performance worse. When in doubt, measure.
+私たちはちょっとした注意について言及しなければ、またミスをおかすところでした。まず初めに、あなたは信頼できるサーバにだけリソースをプッシュすることができます -- これはサードパーティのサーバや CDN 上にホストされたリソースをプッシュできないことを意味します。2つ目に、リソースがクライアントによって実際に必要とされると確信するまでリソースをプッシュしてはいけません、そうしないとあなたのプッシュは帯域幅を浪費します。そこから導かれる結論は、クライアントがすでにそれらのリソースをキャッシュしているようなときはリソースのプッシュを避けることです。3つ目に、あなたのページ上にある全てのリソースをプッシュするナイーブなアプローチはパフォーマンスをより悪くします。嘘だと思うなら、測ってみてください。
 
-The following links make for good supplemental reading:
+以下のリンクは良い補足資料です:
 
 * [HTTP/2 Push: The Details](https://calendar.perfplanet.com/2016/http2-push-the-details/)
 * [Innovating with HTTP/2 Server Push](https://www.igvita.com/2013/06/12/innovating-with-http-2.0-server-push/)
