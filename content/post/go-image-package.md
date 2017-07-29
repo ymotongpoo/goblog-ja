@@ -11,192 +11,229 @@ tags = ["image", "libraries", "technical"]
 
 ## はじめに
 
-The [image](http://golang.org/pkg/image/) and [image/color](http://golang.org/pkg/image/color/) packages define a number of types: `color.Color` and `color.Model` describe colors, `image.Point` and `image.Rectangle` describe basic 2-D geometry, and `image.Image` brings the two concepts together to represent a rectangular grid of colors. A [separate article](http://golang.org/doc/articles/image_draw.html) covers image composition with the [image/draw](http://golang.org/pkg/image/draw/) package.
+[image](http://golang.org/pkg/image/) と [image/color](http://golang.org/pkg/image/color/) パッケージはいくつかの型を定義しています。`color.Color` と `color.Model` は色を、`image.Point` と `image.Rectangle` は基本的な2次元幾何学をそれぞれ記述しており、`image.Image` は色の長方形格子を表現するためにそれら2つの概念を1つにまとめます。[別記事](http://golang.org/doc/articles/image_draw.html) では [image/draw](http://golang.org/pkg/image/draw/) を用いた画像の構成について取り上げています。
 
 ## Color と Color Model
 
-[Color](http://golang.org/pkg/image/color/#Color) is an interface that defines the minimal method set of any type that can be considered a color: one that can be converted to red, green, blue and alpha values. The conversion may be lossy, such as converting from CMYK or YCbCr color spaces.
+[Color](http://golang.org/pkg/image/color/#Color) は色として考えられる任意の型をまとめた最小限のメソッドの組を定義したインターフェースです。つまり、赤、緑、青、アルファ値に変換できるものです。CMYK や YCbCr 色空間から変換するといったある種の変換は不可逆かもしれません。
 
-	type Color interface {
-	    // RGBA returns the alpha-premultiplied red, green, blue and alpha values
-	    // for the color. Each value ranges within [0, 0xFFFF], but is represented
-	    // by a uint32 so that multiplying by a blend factor up to 0xFFFF will not
-	    // overflow.
-	    RGBA() (r, g, b, a uint32)
-	}
+```
+type Color interface {
+    // RGBA returns the alpha-premultiplied red, green, blue and alpha values
+    // for the color. Each value ranges within [0, 0xFFFF], but is represented
+    // by a uint32 so that multiplying by a blend factor up to 0xFFFF will not
+    // overflow.
+    RGBA() (r, g, b, a uint32)
+}
 
-There are three important subtleties about the return values. First, the red, green and blue are alpha-premultiplied: a fully saturated red that is also 25% transparent is represented by RGBA returning a 75% r. Second, the channels have a 16-bit effective range: 100% red is represented by RGBA returning an r of 65535, not 255, so that converting from CMYK or YCbCr is not as lossy. Third, the type returned is `uint32`, even though the maximum value is 65535, to guarantee that multiplying two values together won't overflow. Such multiplications occur when blending two colors according to an alpha mask from a third color, in the style of [Porter and Duff's](https://en.wikipedia.org/wiki/Alpha_compositing) classic algebra:
+戻り値には3つの重要な巧妙さがあります。1つ目は、赤、緑、青はプリマルチプライド・アルファであることです。25% 透明な完全飽和赤は 75% の r を返す RGBA によって表現されます。2つ目に、チャネルの有効範囲は 16 ビットです。CMYK や YCbCr からの変換は不可逆なので、100% の赤は 255 ではなく 65535 の r を返す RGBA によって表現されています。3つ目に、最大値は 65535 ですが、戻り値の型は `uint32` となっていることです。これは2つの値の積がオーバーフローしないことを保証するためです。[Porter-Duff の](https://en.wikipedia.org/wiki/Alpha_compositing)古典代数学のスタイルでアルファマスクに従う2つの色を混ぜ合わせて第3の色を生成する乗算際に起ります。
 
-	dstr, dstg, dstb, dsta := dst.RGBA()
-	srcr, srcg, srcb, srca := src.RGBA()
-	_, _, _, m := mask.RGBA()
-	const M = 1<<16 - 1
-	// The resultant red value is a blend of dstr and srcr, and ranges in [0, M].
-	// The calculation for green, blue and alpha is similar.
-	dstr = (dstr*(M-m) + srcr*m) / M
+```
+dstr, dstg, dstb, dsta := dst.RGBA()
+srcr, srcg, srcb, srca := src.RGBA()
+_, _, _, m := mask.RGBA()
+const M = 1<<16 - 1
+// The resultant red value is a blend of dstr and srcr, and ranges in [0, M].
+// The calculation for green, blue and alpha is similar.
+dstr = (dstr*(M-m) + srcr*m) / M
+```
 
-The last line of that code snippet would have been more complicated if we worked with non-alpha-premultiplied colors, which is why `Color` uses alpha-premultiplied values.
+もしノン・プリマルチプライド・アルファを使って処理を行おうとすると、コード片の最後の行はより複雑になるでしょう。それが `Color` がプリマルチプライド・アルファな値を使う理由です。
 
-The image/color package also defines a number of concrete types that implement the `Color` interface. For example, [`RGBA`](http://golang.org/pkg/image/color/#RGBA) is a struct that represents the classic "8 bits per channel" color.
+image/color パッケージも `Color` インターフェースを実装するいくつかの完全な型を定義しています。例えば、[`RGBA`](http://golang.org/pkg/image/color/#RGBA) は古典的な "1 チャネルあたり 8 ビット" の色を表現する構造になっています。
 
-	type RGBA struct {
-	    R, G, B, A uint8
-	}
+```
+type RGBA struct {
+    R, G, B, A uint8
+}
+```
 
-Note that the `R` field of an `RGBA` is an 8-bit alpha-premultiplied color in the range [0, 255]. `RGBA` satisfies the `Color` interface by multiplying that value by 0x101 to generate a 16-bit alpha-premultiplied color in the range [0, 65535]. Similarly, the [`NRGBA`](http://golang.org/pkg/image/color/#NRGBA) struct type represents an 8-bit non-alpha-premultiplied color, as used by the PNG image format. When manipulating an `NRGBA`'s fields directly, the values are non-alpha-premultiplied, but when calling the `RGBA` method, the return values are alpha-premultiplied.
+`RGBA` の `R` フィールドは 0 から 255 の範囲の値をとる 8 ビットのプリマルチプライド・アルファな色であることに注意してください。0 から 65535 の範囲の値をとる 16 ビットのプリマルチプライド・アルファな色を生成するために 0x101 を値に掛けることによって `RGBA` は `Color` インターフェースを満足させます。同様に、PNG の画像形式で使われるように [`NRGBA`](http://golang.org/pkg/image/color/#NRGBA) 構造型は 8 ビットのノン・プリマルチプライド・アルファな色を表現します。
 
-A [`Model`](http://golang.org/pkg/image/color/#Model) is simply something that can convert `Color`s to other `Color`s, possibly lossily. For example, the `GrayModel` can convert any `Color` to a desaturated [`Gray`](http://golang.org/pkg/image/color/#Gray). A `Palette` can convert any `Color` to one from a limited palette.
+[`Model`](http://golang.org/pkg/image/color/#Model) は単純なもので、おそらく非可逆的に `色` を別の `色` に変換することができます。例えば、`GrayModel` は 任意の `色` を不飽和化された [`Gray`](http://golang.org/pkg/image/color/#Gray) に変換できます。 `Palette` は制限されたパレットにより任意の `色` をある `色` に変換できます。
 
-	type Model interface {
-	    Convert(c Color) Color
-	}
+```
+type Model interface {
+    Convert(c Color) Color
+}
 
-	type Palette []Color
+type Palette []Color
+```
 
 ## Point と Rectangle
 
-A [`Point`](http://golang.org/pkg/image/#Point) is an (x, y) co-ordinate on the integer grid, with axes increasing right and down. It is neither a pixel nor a grid square. A `Point` has no intrinsic width, height or color, but the visualizations below use a small colored square.
+[`Point`](http://golang.org/pkg/image/#Point) は右方向と下方向に増加する軸に従った整数格子上の (x, y) 座標です。それはピクセルでも格子で区切られた正方形でもありません。`点` は固有の幅や高さ、色を持っていませんが、以下の図では色付きの小さな正方形を用いています。
 
-	type Point struct {
-	    X, Y int
-	}
+```
+type Point struct {
+    X, Y int
+}
+```
 
 ![go-image-package_image-package-01](./go-image-package_image-package-01.png)
 
-	    p := image.Point{2, 1}
+```
+p := image.Point{2, 1}
+```
 
-A [`Rectangle`](http://golang.org/pkg/image/#Rectangle) is an axis-aligned rectangle on the integer grid, defined by its top-left and bottom-right `Point`.  A `Rectangle` also has no intrinsic color, but the visualizations below outline rectangles with a thin colored line, and call out their `Min` and `Max` `Point`s.
+[`Rectangle`](http://golang.org/pkg/image/#Rectangle) は左上と右下の `点` によって定義される整数格子上にある軸に平行な長方形です。`長方形` も固有の色を持っていませんが、以下の図では色付きの細い線を用いて長方形の輪郭を描き、`最小` および `最大` の `点` を呼びます。
 
-	type Rectangle struct {
-	    Min, Max Point
-	}
+```
+type Rectangle struct {
+    Min, Max Point
+}
+```
 
-For convenience, `image.Rect(x0,`y0,`x1,`y1)` is equivalent to `image.Rectangle{image.Point{x0,`y0},`image.Point{x1,`y1}}`, but is much easier to type.
+便利のため `image.Rect(x0, y0, x1, y1)` は `image.Rectangle{image.Point{x0, y0}, image.Point{x1, y1}}` と同値としますが、前者のほうが入力するのは簡単です。
 
-A `Rectangle` is inclusive at the top-left and exclusive at the bottom-right. For a `Point`p` and a `Rectangle`r`, `p.In(r)` if and only if `r.Min.X`<=`p.X`&&`p.X`<`r.Max.X`, and similarly for `Y`. This is analogous to how a slice `s[i0:i1]` is inclusive at the low end and exclusive at the high end. (Unlike arrays and slices, a `Rectangle` often has a non-zero origin.)
+`長方形` は左上の点を排他し、右下の点を包含しています。`点 p` と `長方形 r` に対し、`r.Min.X <= p.X && p.X < r.Max.X` を満たす場合のみ `p.In(r)` と表します、`Y` についても同様です。これはスライス `s[i0:i1]` がどうやって下限を含み上限を排他するのかということに似ています。（配列やスライスと違い、`長方形` はよく非ゼロの原点を含みます。）
 
 ![go-image-package_image-package-02](./go-image-package_image-package-02.png)
 
-	    r := image.Rect(2, 1, 5, 5)
-	    // Dx and Dy return a rectangle's width and height.
-	    fmt.Println(r.Dx(), r.Dy(), image.Pt(0, 0).In(r)) // prints 3 4 false
+```
+r := image.Rect(2, 1, 5, 5)
+// Dx and Dy return a rectangle's width and height.
+fmt.Println(r.Dx(), r.Dy(), image.Pt(0, 0).In(r)) // prints 3 4 false
+```
 
-Adding a `Point` to a `Rectangle` translates the `Rectangle`. Points and Rectangles are not restricted to be in the bottom-right quadrant.
+`点` を `長方形` に加えることでその `長方形` を変換します。点と長方形は右下の象限内に制限されていません。
 
 ![go-image-package_image-package-03](./go-image-package_image-package-03.png)
 
-	    r := image.Rect(2, 1, 5, 5).Add(image.Pt(-4, -2))
-	    fmt.Println(r.Dx(), r.Dy(), image.Pt(0, 0).In(r)) // prints 3 4 true
+```
+r := image.Rect(2, 1, 5, 5).Add(image.Pt(-4, -2))
+fmt.Println(r.Dx(), r.Dy(), image.Pt(0, 0).In(r)) // prints 3 4 true
+```
 
-Intersecting two Rectangles yields another Rectangle, which may be empty.
+2つの長方形の興味深いところは、もう1つの長方形を生み出すところです、それは空かもしれません。
 
 ![go-image-package_image-package-04](./go-image-package_image-package-04.png)
 
-	    r := image.Rect(0, 0, 4, 3).Intersect(image.Rect(2, 2, 5, 5))
-	    // Size returns a rectangle's width and height, as a Point.
-	    fmt.Printf("%#v\n", r.Size()) // prints image.Point{X:2, Y:1}
+```
+r := image.Rect(0, 0, 4, 3).Intersect(image.Rect(2, 2, 5, 5))
+// Size returns a rectangle's width and height, as a Point.
+fmt.Printf("%#v\n", r.Size()) // prints image.Point{X:2, Y:1}
+```
 
-Points and Rectangles are passed and returned by value. A function that takes a `Rectangle` argument will be as efficient as a function that takes two `Point` arguments, or four `int` arguments.
+点と長方形は値によってパスされたりリターンされたりします。`Rectangle` を引数に取る関数は2つの `Point` か4つの `int` を引数にとる関数と同じくらい優れているでしょう。
 
 ## Image
 
-An [Image](http://golang.org/pkg/image/#Image) maps every grid square in a `Rectangle` to a `Color` from a `Model`. "The pixel at (x, y)" refers to the color of the grid square defined by the points (x, y), (x+1, y), (x+1, y+1) and (x, y+1).
+[Image](http://golang.org/pkg/image/#Image) は `長方形` 内の格子で区切られた正方形を `モデル` から作られる `色` に射影します。"(x, y) のピクセル" は点 (x, y), (x+1, y), (x+1, y+1), (x, y+1) によって定義される格子で区切られた正方形の色を参照します。
 
-	type Image interface {
-	    // ColorModel returns the Image's color model.
-	    ColorModel() color.Model
-	    // Bounds returns the domain for which At can return non-zero color.
-	    // The bounds do not necessarily contain the point (0, 0).
-	    Bounds() Rectangle
-	    // At returns the color of the pixel at (x, y).
-	    // At(Bounds().Min.X, Bounds().Min.Y) returns the upper-left pixel of the grid.
-	    // At(Bounds().Max.X-1, Bounds().Max.Y-1) returns the lower-right one.
-	    At(x, y int) color.Color
-	}
+```
+type Image interface {
+    // ColorModel returns the Image's color model.
+    ColorModel() color.Model
+    // Bounds returns the domain for which At can return non-zero color.
+    // The bounds do not necessarily contain the point (0, 0).
+    Bounds() Rectangle
+    // At returns the color of the pixel at (x, y).
+    // At(Bounds().Min.X, Bounds().Min.Y) returns the upper-left pixel of the grid.
+    // At(Bounds().Max.X-1, Bounds().Max.Y-1) returns the lower-right one.
+    At(x, y int) color.Color
+}
+```
 
-A common mistake is assuming that an `Image`'s bounds start at (0, 0). For example, an animated GIF contains a sequence of Images, and each `Image` after the first typically only holds pixel data for the area that changed, and that area doesn't necessarily start at (0, 0). The correct way to iterate over an `Image` m's pixels looks like:
+共通する誤りは `画像` の範囲が (0, 0) から始まると思い込むことです。例えば、アニメーション GIF が画像列を含み、典型的に初めの画像以降のそれぞれの `画像` が変化した領域のピクセルデータだけ保持し、その領域は (0, 0) から始まる必要はありません。`画像` m のピクセル全体を走査するための正しい方法は以下のような感じです:
 
-	b := m.Bounds()
-	for y := b.Min.Y; y < b.Max.Y; y++ {
-	 for x := b.Min.X; x < b.Max.X; x++ {
-	  doStuffWith(m.At(x, y))
-	 }
-	}
+```
+b := m.Bounds()
+for y := b.Min.Y; y < b.Max.Y; y++ {
+    for x := b.Min.X; x < b.Max.X; x++ {
+        doStuffWith(m.At(x, y))
+    }
+}
+```
 
-`Image` implementations do not have to be based on an in-memory slice of pixel data. For example, a [`Uniform`](http://golang.org/pkg/image/#Uniform) is an `Image` of enormous bounds and uniform color, whose in-memory representation is simply that color.
+`画像` の実装はピクセルデータのインメモリスライスをベースにする必要はありません。例えば、[`Uniform`](http://golang.org/pkg/image/#Uniform) は巨大でインメモリ表現が単なる一様な色の `画像` です。
 
-	type Uniform struct {
-	    C color.Color
-	}
+```
+type Uniform struct {
+    C color.Color
+}
+```
 
-Typically, though, programs will want an image based on a slice. Struct types like [`RGBA`](http://golang.org/pkg/image/#RGBA) and [`Gray`](http://golang.org/pkg/image/#Gray) (which other packages refer to as `image.RGBA` and `image.Gray`) hold slices of pixel data and implement the `Image` interface.
+典型的に、それでもなお、プログラムはスライスベースの画像を求めています。[`RGBA`](http://golang.org/pkg/image/#RGBA) や [`Gray`](http://golang.org/pkg/image/#Gray) のような構造型（他のパッケージでは `image.RGBA` や `image.Gray` として参照する）はピクセルデータのスライスを保持し `Image` インターフェースを実装します。
 
-	type RGBA struct {
-	    // Pix holds the image's pixels, in R, G, B, A order. The pixel at
-	    // (x, y) starts at Pix[(y-Rect.Min.Y)*Stride + (x-Rect.Min.X)*4].
-	    Pix []uint8
-	    // Stride is the Pix stride (in bytes) between vertically adjacent pixels.
-	    Stride int
-	    // Rect is the image's bounds.
-	    Rect Rectangle
-	}
+```
+type RGBA struct {
+    // Pix holds the image's pixels, in R, G, B, A order. The pixel at
+    // (x, y) starts at Pix[(y-Rect.Min.Y)*Stride + (x-Rect.Min.X)*4].
+    Pix []uint8
+    // Stride is the Pix stride (in bytes) between vertically adjacent pixels.
+    Stride int
+    // Rect is the image's bounds.
+    Rect Rectangle
+}
+```
 
-These types also provide a `Set(x,`y`int,`c`color.Color)` method that allows modifying the image one pixel at a time.
+それらの型も一度に1ピクセルを修正する `Set(x, y int, c color.Color)` メソッドを提供します。
 
-	    m := image.NewRGBA(image.Rect(0, 0, 640, 480))
-	    m.Set(5, 5, color.RGBA{255, 0, 0, 255})
+```
+m := image.NewRGBA(image.Rect(0, 0, 640, 480))
+m.Set(5, 5, color.RGBA{255, 0, 0, 255})
+```
 
-If you're reading or writing a lot of pixel data, it can be more efficient, but more complicated, to access these struct type's `Pix` field directly.
+たくさんのピクセルデータを読み書きしたい場合はより効率的にできますが、構造型の `Pix` フィールドに直接アクセスするためより複雑になります。
 
-The slice-based `Image` implementations also provide a `SubImage` method, which returns an `Image` backed by the same array. Modifying the pixels of a sub-image will affect the pixels of the original image, analogous to how modifying the contents of a sub-slice `s[i0:i1]` will affect the contents of the original slice `s`.
+スライスベースの `画像` の実装も同じ配列を元にした `画像` を返す `SubImage` メソッドを提供しています。サブスライス `s[i0:i1]` の内容を修正すると元のスライス `s` の内容に影響が及ぶことと同様に、サブ画像のピクセルを修正すると元の画像のピクセルに影響が及びます。
 
 ![go-image-package_image-package-05](./go-image-package_image-package-05.png)
 
-	    m0 := image.NewRGBA(image.Rect(0, 0, 8, 5))
-	    m1 := m0.SubImage(image.Rect(1, 2, 5, 5)).(*image.RGBA)
-	    fmt.Println(m0.Bounds().Dx(), m1.Bounds().Dx()) // prints 8, 4
-	    fmt.Println(m0.Stride == m1.Stride)             // prints true
+```
+m0 := image.NewRGBA(image.Rect(0, 0, 8, 5))
+m1 := m0.SubImage(image.Rect(1, 2, 5, 5)).(*image.RGBA)
+fmt.Println(m0.Bounds().Dx(), m1.Bounds().Dx()) // prints 8, 4
+fmt.Println(m0.Stride == m1.Stride)             // prints true
+```
 
-For low-level code that works on an image's `Pix` field, be aware that ranging over `Pix` can affect pixels outside an image's bounds. In the example above, the pixels covered by `m1.Pix` are shaded in blue. Higher-level code, such as the `At` and `Set` methods or the [image/draw package](http://golang.org/pkg/image/draw/), will clip their operations to the image's bounds.
+画像の `Pix` フィールドで動作する低級なコードを扱ううえで、`Pix` の範囲を超えることは画像の範囲外のピクセルに影響を与えるということを理解しておいてください。上記の例では、`m1.Pix` によって変換されたピクセルは青で共有されます。`At` や `Set` メソッドまたは [image/draw パッケージ](http://golang.org/pkg/image/draw/) のような高級なコードは画像の範囲に対する操作を制限します。
 
-## Image フォーマット
+## 画像の形式
 
-The standard package library supports a number of common image formats, such as GIF, JPEG and PNG. If you know the format of a source image file, you can decode from an [`io.Reader`](http://golang.org/pkg/io/#Reader) directly.
+標準パッケージライブラリは GIF、JPEG、PNG などの多くの共通した画像形式をサポートしています。もとの画像ファイルのフォーマットが分かっている場合、[`io.Reader`](http://golang.org/pkg/io/#Reader) から直接デコードできます。
 
-	import (
-	 "image/jpeg"
-	 "image/png"
-	 "io"
-	)
+```
+import (
+    "image/jpeg"
+    "image/png"
+    "io"
+)
 
-	// convertJPEGToPNG converts from JPEG to PNG.
-	func convertJPEGToPNG(w io.Writer, r io.Reader) error {
-	 img, err := jpeg.Decode(r)
-	 if err != nil {
-	  return err
-	 }
-	 return png.Encode(w, img)
-	}
+// convertJPEGToPNG converts from JPEG to PNG.
+func convertJPEGToPNG(w io.Writer, r io.Reader) error {
+    img, err := jpeg.Decode(r)
+    if err != nil {
+        return err
+    }
+    return png.Encode(w, img)
+}
+```
 
-If you have image data of unknown format, the [`image.Decode`](http://golang.org/pkg/image/#Decode) function can detect the format. The set of recognized formats is constructed at run time and is not limited to those in the standard package library. An image format package typically registers its format in an init function, and the main package will "underscore import" such a package solely for the side effect of format registration.
+形式不明な画像データがある場合、[`image.Decode`](http://golang.org/pkg/image/#Decode) 関数は形式を検出することができます。認識される形式の集合は実行時に構築され、標準パッケージライブラリ内の形式に制限されていません。画像形式パッケージは典型的に init 関数内で自身を登録し、main パッケージは形式の登録が副作用するようにそのようなパッケージ単体を "アンダースコアインポート" するでしょう。
 
-	import (
-	 "image"
-	 "image/png"
-	 "io"
+```
+import (
+    "image"
+    "image/png"
+    "io"
 
-	 _ "code.google.com/p/vp8-go/webp"
-	 _ "image/jpeg"
-	)
+    _ "code.google.com/p/vp8-go/webp"
+    _ "image/jpeg"
+)
 
-	// convertToPNG converts from any recognized format to PNG.
-	func convertToPNG(w io.Writer, r io.Reader) error {
-	 img, _, err := image.Decode(r)
-	 if err != nil {
-	  return err
-	 }
-	 return png.Encode(w, img)
-	}
+// convertToPNG converts from any recognized format to PNG.
+func convertToPNG(w io.Writer, r io.Reader) error {
+    img, _, err := image.Decode(r)
+    if err != nil {
+        return err
+    }
+    return png.Encode(w, img)
+}
+```
+
+*By Nigel Tao*
 
 ## あわせて読む
 * [HTTP/2 Server Push](https://blog.golang.org/h2push)
