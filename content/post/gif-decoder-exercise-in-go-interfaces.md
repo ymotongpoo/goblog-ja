@@ -104,7 +104,7 @@ deblockingReader := &blockReader{r: imageFile}
 
 ## ピースを繋げる
 
-`blockReader` の実装とライブラリから利用可能なLZWコンプレッサにより、画像データストリームをデコードするために必要なピースが全て揃いました。私たちはコードから真っ直ぐに伸びたこの衝撃ともにそれら紡ぎ合わせます:
+`blockReader` の実装とライブラリから利用可能なLZWコンプレッサにより、画像データストリームをデコードするために必要なピースが全て揃いました。驚くほど短く、素直にコードを紡ぎ合わせます。
 
 ```
 lzwr := lzw.NewReader(&blockReader{r: d.r}, lzw.LSB, int(litWidth))
