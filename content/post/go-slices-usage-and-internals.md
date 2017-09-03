@@ -33,7 +33,7 @@ i := a[0]
 
 `[4]int` のメモリ上での表現は、連続して割り付けられたちょうど4つの整数値になっています:
 
-![go-slices-usage-and-internals_slice-array](./go-slices-usage-and-internals_slice-array.png)
+![go-slices-usage-and-internals_slice-array](./go-slices-usage-and-internals/go-slices-usage-and-internals_slice-array.png)
 
 Goの配列は値です。配列変数は配列全体を示しています。（Cのように）最初の配列要素を指すポインタではありません。これは配列の値を割り当てたり分配するとき、その中身のコピーを作ることを意味しています（コピーを避けるために配列に*ポインタ*を渡すことができますが、それは配列ではなく配列へのポインタになります）。配列は、名前付けられたフィールドというよりインデックス付けされた構造体の一種、すなわち固定長の複合値として考えられます。
 
@@ -120,11 +120,11 @@ s := x[:] // a slice referencing the storage of x
 
 スライスは配列セグメントの記述子です。記述子は、配列へのポインタptr、セグメント長len、スライスの容量cap（セグメントの最大長）を含んでいます。
 
-![go-slices-usage-and-internals_slice-struct](./go-slices-usage-and-internals_slice-struct.png)
+![go-slices-usage-and-internals_slice-struct](./go-slices-usage-and-internals/go-slices-usage-and-internals_slice-struct.png)
 
 少し前に `make([]byte, 5)` から作った変数 `s` はこのような構成になっています:
 
-![go-slices-usage-and-internals_slice-1](./go-slices-usage-and-internals_slice-1.png)
+![go-slices-usage-and-internals_slice-1](./go-slices-usage-and-internals/go-slices-usage-and-internals_slice-1.png)
 
 長さはスライスによって参照される要素の数です。容量は（スライスのポインタが参照する要素から始まる）元の配列の要素の数です。長さと容量の違いは、次のいくつかの例を通して明らかになるでしょう。
 
@@ -134,7 +134,7 @@ s := x[:] // a slice referencing the storage of x
 s = s[2:4]
 ```
 
-![go-slices-usage-and-internals_slice-2](./go-slices-usage-and-internals_slice-2.png)
+![go-slices-usage-and-internals_slice-2](./go-slices-usage-and-internals/go-slices-usage-and-internals_slice-2.png)
 
 スライシングではスライスデータをコピーしません。元の配列を指し示す新しいスライス値を作ります。これは配列のインデックス操作と同じくらい効率的なスライス操作を作ります。したがって、スライシングによるスライスの*要素*（スライス自身ではありません）を書き換えると元のスライスの要素も書き換わります:
 
@@ -153,7 +153,7 @@ e[1] = 'm'
 s = s[:cap(s)]
 ```
 
-![go-slices-usage-and-internals_slice-3](./go-slices-usage-and-internals_slice-3.png)
+![go-slices-usage-and-internals_slice-3](./go-slices-usage-and-internals/go-slices-usage-and-internals_slice-3.png)
 
 スライスはその容量を超えて拡張することはできません。もしそうした場合、スライスや配列の範囲外を参照したときのようにランタイムパニックが起こるでしょう。同じように、配列の最初の要素より前にアクセスするためにスライスを0以下に再スライスすることはできません。
 
