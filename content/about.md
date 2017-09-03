@@ -19,3 +19,11 @@ https://github.com/ymotongpoo/goblog-ja
 
 ## Disclaimer
 のんびり翻訳してるので気長にお待ちください。誤訳、typoなどは気軽にissueをあげてください。
+
+## Contributers
+
+翻訳の投稿やtypo以上のまとまった修正を行った人を載せています
+
+* ymotongpoo
+* cia-rana
+* hiroshi-manabe
