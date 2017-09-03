@@ -10,17 +10,16 @@ tags = ["concurrency", "cancellation", "context", "gorilla", "tomb"]
 
 ## はじめに
 Goで書かれたサーバでは、サーバに来たリクエストはそれぞれそれ自身のゴルーチンで処理されます。
-リクエストハンドラはしばしばデータベースやRPCサービスといったバックエンドにアクセスするために追加でゴルーチンを起動します。
+リクエストハンドラはしばしばデータベースやRPCサービスといったバックエンドにアクセスするために追加のゴルーチンを起動します。
 リクエストの処理を行っているゴルーチンは、通常エンドユーザのアイデンティティや認可トークン、リクエストの期限などリクエスト固有の値へのアクセス権が必要です。
-リクエストがキャンセルされたりタイムアウトした場合には、システムがそれらのゴルーチンが使っていたリソースを再度要求することができるように、
-そのリクエストの処理を行っていたすべてのゴルーチンは素早く終了すべきです。
+リクエストがキャンセルされたりタイムアウトした場合には、それらのゴルーチンが使っていたリソースをシステムが再度要求することができるように、そのリクエストの処理を行っているすべてのゴルーチンは素早く終了すべきです。
 
-Googleで私たちは、簡単にAPIの境界をまたぐリクエスト固有の値やキャンセルのシグナル、期限などを、
-あるリクエストに関係するすべてのゴルーチンに投げることが出来る、 `context` パッケージというパッケージを開発しました。
-パッケージは [golang.org/x/net/context](http://godoc.org/golang.org/x/net/context) に公開されています。 [1][]
+Googleで私たちは、APIの境界をまたぐリクエスト固有の値やキャンセルのシグナル、期限などを、
+あるリクエストの処理に関与するすべてのゴルーチンに投げることを容易にする、 `context` パッケージというパッケージを開発しました。
+パッケージは [golang.org/x/net/context](http://godoc.org/golang.org/x/net/context) に公開されています。 [^1]
 この記事ではそのパッケージの使い方と実際に動作する例を紹介したいと思います。
 
-  [1] 訳註: 原文では `code.google.com/p/go.net/context` を参照していますが、現状に合わせてURLを変更しました。
+[^1]: 訳註: 原文では `code.google.com/p/go.net/context` を参照していますが、現状に合わせてURLを変更しました。
 
 ## コンテキスト（Context）
 
@@ -46,19 +45,16 @@ type Context interface {
 
 （この説明は要約されたもので、 [godoc](http://godoc.org/golang.org/x/net/context) が正式なものです。）
 
-`Done` メソッドは、 `Context` の代わりに動作する関数に対するキャンセルシグナルとして
-振る舞うチャンネルを返します。チャンネルが閉じられたときに、関数は処理を中断して戻るべきです。
+`Done` メソッドは、 `Context` の代わりに動作する関数に対するキャンセルシグナルとして振る舞うチャンネルを返します。チャンネルが閉じられたときに、関数は処理を中断して戻るべきです。
 `Err` メソッドはなぜその `Context` がキャンセルされたかを示すエラーを返します。
-[パイプラインとキャンセル](https://blog.golang.org/pipelines) の記事では `Done` チャンネルの
-イディオムについてより詳細に議論しています。
+[パイプラインとキャンセル](https://blog.golang.org/pipelines) の記事では `Done` チャンネルのイディオムについてより詳細に議論しています。
 
-`Context` には `Done` チャンネルが受信専用であるのと同様の理由で `Cancel` メソッドがあり _ません_ 。
+`Context` には `Done` チャンネルが受信専用であるのと同様の理由で `Cancel` メソッドがあり *ません* 。
 キャンセルシグナルを受け取る関数は通常シグナルを送る関数ではありません。
-特に、親の操作が子の操作を行うゴルーチンを起動したときに、これら子の操作は親をキャンセルできるべきではありません。
+特に、親の操作が子の操作を行うためのゴルーチンを起動したときに、それらの子の操作が親の操作をキャンセルできるべきではありません。
 代わりに `WithCancel` 関数（あとで説明します）で新しい `Context` の値をキャンセルする方法を提供します。
 
-`Context` は複数のゴルーチンから同時に使われても安全です。コード内では1つの `Context` を
-任意の数のゴルーチンに渡し、その `Context` をキャンセルしてすべてのゴルーチンに伝えることができます。
+`Context` は複数のゴルーチンから同時に使われても安全です。コード内では1つの `Context` を任意の数のゴルーチンに渡し、その `Context` をキャンセルしてすべてのゴルーチンに伝えることができます。
 
 `Deadline` は関数が処理を始めるべきかどうかを決定することができるメソッドです。
 もし残り時間が少なければ、起動する価値はありません。コードでは期限をI/O操作のタイムアウトとして利用することもあるでしょう。
@@ -68,7 +64,7 @@ type Context interface {
 
 ## 派生したコンテキスト
 
-`context` パッケージでは既存のコンテキストから新しい `Context` の値を _派生する_ 関数を提供しています。
+`context` パッケージでは既存のコンテキストから新しい `Context` の値を *派生する* 関数を提供しています。
 これらの値は木構造になっていて、 `Context` がキャンセルされたときに、そこから派生した `Context` もすべてキャンセルされます。
 
 
@@ -113,28 +109,25 @@ func WithValue(parent Context, key interface{}, val interface{}) Context
 `context` パッケージの使い方を理解するには動く実例を通して見るのが最良でしょう。
 
 ## 例: Google ウェブ検索
-一つの例は `/search?q=golang&timeout=1s` のようなURLを処理して「golang」という検索クエリを
-[Google Web Search API](https://developers.google.com/web-search/docs/) に投げて、
+一つの例は `/search?q=golang&timeout=1s` のようなURLを処理して「golang」という検索クエリを [Google Web Search API](https://developers.google.com/web-search/docs/) に投げて、
 その結果を表示するようなHTTPサーバーです。 `timeout` パラメータはサーバーに指定時間が経過したら
 リクエストをキャンセルするように伝えます。
 
 コードは3つのパッケージに分かれています。
 
-* [server](https://blog.golang.org/context/server/server.go) は `main` 関数と `/search` のハンドラーを提供します。
+* [server](https://blog.golang.org/context/server/server.go) は `main` 関数と `/search` のハンドラを提供します。
 * [userip](https://blog.golang.org/context/userip/userip.go) はリクエストからユーザーのIPアドレスを抜き出し、 `Context` に紐付ける関数を提供します。
 
 * [google](https://blog.golang.org/context/google/google.go) はGoogleにクエリを送信する `Search` 関数を提供します。
 
 ## サーバーのプログラム
-[server](https://blog.golang.org/context/server/server.go) のプログラムは `/serach?q=golang` のようなリクエストを処理して
-`golang` という検索クエリによるGoogle検索の最初の結果いくつかを返します。サーバーでは `handleSearch` という関数を `/search` のエンドポイントとして
-登録しています。ハンドラーは `ctx` という最初の `Context` を生成して、ハンドラーが値を返すときにそれがキャンセルされるように設定します。
-もしリクエストに `timeout` というURLパラメーターが含まれていたら、 `Context` は自動的に期限が来たらキャンセルされます。
+[server](https://blog.golang.org/context/server/server.go) のプログラムは `/serach?q=golang` のようなリクエストを処理して `golang` という検索クエリによるGoogle検索の最初の結果いくつかを返します。サーバーでは `handleSearch` という関数を `/search` のエンドポイントとして登録しています。ハンドラは `ctx` という最初の `Context` を生成して、ハンドラが値を返すときにそれがキャンセルされるように設定します。
+もしリクエストに `timeout` というURLパラメーターが含まれていたら、 `Context` は期限が来たら自動的にキャンセルされます。
 
 ```
 func handleSearch(w http.ResponseWriter, req *http.Request) {
-    // ctx はこのハンドラーの Context です。 cancel を呼ぶことで
-    // ctx.Done チャンネルが閉じられます。これで、このハンドラーからのリクエスト用の
+    // ctx はこのハンドラの Context です。 cancel を呼ぶことで
+    // ctx.Done チャンネルが閉じられます。これで、このハンドラからのリクエスト用の
     // キャンセルシグナルです。
     var (
         ctx    context.Context
@@ -151,7 +144,7 @@ func handleSearch(w http.ResponseWriter, req *http.Request) {
     defer cancel() // handleSearchが値を返したらすぐに ctx をキャンセルします。
 ```
 
-このハンドラーは `google.Search` を `ctx` と `query` を使って呼び出します。
+このハンドラは `google.Search` を `ctx` と `query` を使って呼び出します。
 
 ```
     // Google検索を実行して結果を表示します。
@@ -160,7 +153,7 @@ func handleSearch(w http.ResponseWriter, req *http.Request) {
     elapsed := time.Since(start)
 ```
 
-検索に成功したら、ハンドラーは結果を返します。
+検索に成功したら、ハンドラは結果を返します。
 
 ```
     if err := resultsTemplate.Execute(w, struct {
@@ -177,8 +170,7 @@ func handleSearch(w http.ResponseWriter, req *http.Request) {
 ```
 
 ## userip パケージ
-[userip](https://blog.golang.org/context/userip/userip.go) パッケージはリクエストからユーザーのIPアドレスを抜き出し、
-それを `Context` に紐付ける関数を提供します。 `Context` はキーと値の対応表を提供します。このとき、キーも値もともに `interface{}` 型です。
+[userip](https://blog.golang.org/context/userip/userip.go) パッケージはリクエストからユーザーのIPアドレスを抜き出し、それを `Context` に紐付ける関数を提供します。 `Context` はキーと値の対応表を提供します。このとき、キーも値もともに `interface{}` 型です。
 キーの型は同値性をサポートしなければならず、値の型は複数のゴルーチンから同時に使われても安全でなければなりません。
 `userip` のようなパッケージはこの対応表の詳細を隠し、特定の `Context` の値にたいして強く型付けされたアクセスを提供します。
 
@@ -223,9 +215,7 @@ func FromContext(ctx context.Context) (net.IP, bool) {
 ```
 
 ## google パッケージ
-[google.Search](https://blog.golang.org/context/google/google.go) 関数は [Google Web Search API](https://developers.google.com/web-search/docs/)
-に対してHTTPリクエストを送り、JSONエンコードされた結果をパースします。この関数は `Context` のパラメーター `ctx` を受け取り、もし `ctx.Done` が
-閉じられていたら、リクエストが実行中だったとしても、直ちに結果を返します。
+[google.Search](https://blog.golang.org/context/google/google.go) 関数は [Google Web Search API](https://developers.google.com/web-search/docs/) に対してHTTPリクエストを送り、JSONエンコードされた結果をパースします。この関数は `Context` のパラメーター `ctx` を受け取り、もし `ctx.Done` が閉じられていたら、リクエストが実行中だったとしても、直ちに結果を返します。
 
 Google Web Search APIのリクエストには、クエリパラメータとして検索クエリとユーザーのIPアドレスが含まれています。
 
@@ -239,7 +229,7 @@ func Search(ctx context.Context, query string) (Results, error) {
     q := req.URL.Query()
     q.Set("q", query)
 
-    // ctx にユーザーのIPアドレスが会った場合、それをサーバーに転送します。
+    // ctx にユーザーのIPアドレスが有った場合、それをサーバーに転送します。
     // Google API はサーバーが起動したリクエストとエンドユーザーのリクエストを区別するために
     // ユーザーのIPアドレスを使います。
     if userIP, ok := userip.FromContext(ctx); ok {
@@ -248,8 +238,7 @@ func Search(ctx context.Context, query string) (Results, error) {
     req.URL.RawQuery = q.Encode()
 ```
 
-`Search` はHTTPリクエストの発行、およびリクエストまたはレスポンスが処理中に `ctx.Done` が
-閉じられた場合のキャンセル処理のためにヘルパー関数である `httpDo` を使います。
+`Search` はHTTPリクエストを発行するためにヘルパー関数 `httpDo` を使い、リクエストまたはレスポンスが処理中に `ctx.Done` が閉じられるとHTTPリクエストをキャンセルします。
 `Search` はHTTPレスポンスを処理するために `httpDo` にクロージャーを渡します。
 
 ```
@@ -305,33 +294,22 @@ func httpDo(ctx context.Context, req *http.Request, f func(*http.Response, error
 
 ## Context用のコードを適用する
 
-多くのサーバーフレームワークがリクエスト固有の値を保持するためのパッケージと型を提供しています。
-既存のフレームワークを使ったコードと `Context` パラメータを期待するコードの間の架け橋として
+多くのサーバーフレームワークがリクエスト固有の値を保持するためにパッケージと型を提供しています。
+既存のフレームワークを使ったコードと `Context` パラメータを期待するコードとの架け橋として
 `Context` インターフェースの新しい実装を定義することができます。
 
-たとえば、Gorillaの [github.com/gorilla/context](http://github.com/gorilla/context) パッケージは、
-HTTPリクエストからキーと値のペアへの対応表を提供することで、ハンドラーがデータと受け取ったリクエストを
-紐付けることができるようになっています。 [gorilla.go](https://blog.golang.org/context/gorilla/gorilla.go) では、
-`Value` メソッドがGorillaパッケージ内の特定のHTTPリクエストに紐付いた値を返すような `Context` の実装を提供しています。
+たとえば、Gorillaの [github.com/gorilla/context](http://github.com/gorilla/context) パッケージは、HTTPリクエストからキーと値のペアへの対応表を提供することで、ハンドラがデータと受け取ったリクエストを紐付けることができるようになっています。 [gorilla.go](https://blog.golang.org/context/gorilla/gorilla.go) では、`Value` メソッドがGorillaパッケージ内の特定のHTTPリクエストに紐付いた値を返すような `Context` の実装を提供しています。
 
-他のパッケージでは `Context` と似たキャンセルの仕組みをサポートしてきています。たとえば [Tomb](http://godoc.org/gopkg.in/tomb.v2)
-では、 `Dying` チャンネルを閉じることでキャンセルシグナルを送る `Kill` メソッドを提供しています。
-また `Tomb` は処理用のゴルーチンが終了するのを待つ、 `sync.WaitGroup` に似たメソッドも提供しています。
-[tomb.go](https://blog.golang.org/context/tomb/tomb.go) では、親の `Context` がキャンセルされる、もしくは
-与えられた `Tomb` が殺された場合にキャンセルされる `Context` の実装を提供しています。
+他のパッケージでは `Context` と似たキャンセルの仕組みをサポートしてきています。たとえば [Tomb](http://godoc.org/gopkg.in/tomb.v2) では、 `Dying` チャンネルを閉じることでキャンセルシグナルを送る `Kill` メソッドを提供しています。
+また `Tomb` は処理用のゴルーチンが終了するのを待つ、`sync.WaitGroup` に似たメソッドも提供しています。
+[tomb.go](https://blog.golang.org/context/tomb/tomb.go) では、親の `Context` がキャンセルされる、もしくは与えられた `Tomb` が殺された場合にキャンセルされる `Context` の実装を提供しています。
 
 ## 結論
-Googleでは、Goプログラマに受信および送信のリクエストの間の経路での呼び出しにおいて、
-すべての関数で第1引数に `Context` パラメーターを渡すことを要求しています。
+Googleでは、Goプログラマに受信と送信とのリクエスト間の経路での呼び出しにおいて、すべての関数で第1引数に `Context` パラメーターを渡すことを要求しています。
 これによって、多くの異なるチームが開発したGoのコードがお互いに上手く動くようになっています。
-`Context` によって期限とキャンセルを単純に制御できるようになり、またセキュリティ上の認証情報といった
-致命的な値がGoのプログラム内を適切に通過することを確実にしています。
+`Context` によって期限とキャンセルをシンプルに制御できるようになり、またセキュリティ上の認証情報といった重要な値がGoのプログラム内を適切に通過することを確実にしています。
 
-`Context` 上に構築したいサーバーフレームワークは、そのパッケージと `Context` パラメーターがあると期待される
-パッケージ間の橋渡しをするような `Context` の実装を提供すべきでしょう。そうするとクライアントライブラリは
-`Context` を呼び出しのコードから受け取るでしょう。リクエスト固有のデータとキャンセルに関する共通の
-インターフェースを構築することで、 `Context` はパッケージ開発者がスケーラブルなサービスを作るとために
-コードを共有することをより簡単にします。
+`Context` 上に構築したいサーバーフレームワークは、そのパッケージと `Context` パラメーターがあると期待されるパッケージ間の橋渡しをするような `Context` の実装を提供すべきでしょう。そうするとクライアントライブラリは `Context` を呼び出し元のコードから受け取るでしょう。リクエスト固有のデータとキャンセルに関する共通のインターフェースを構築することで、 `Context` はパッケージ開発者がスケーラブルなサービスを作るとためにコードを共有することをより簡単にします。
 
 By Sameer Ajmani
 
