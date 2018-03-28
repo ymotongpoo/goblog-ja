@@ -48,11 +48,6 @@ Dep は2017年1月にリリースされました。そのベーシックモデ�
 私は2月の最初の3週間を利用してラッパーを完全なバージョンの `go` コマンド `vgo` に書き直したり、[`vgo` について紹介するブログ記事一覧](https://research.swtch.com/vgo) の草稿を書いたり、Sam Boyer やパッケージ管理ワークグループ、Go チームと議論したりしました。そして2月の最後の週は
 Go コミュニティ全体に対して `vgo` やその背後に隠されたアイデアを共有しました。
 
-In addition to the core ideas of import compatibility, semantic import versioning, and minimal version selection, the `vgo` prototype introduces a number of smaller but significant changes motivated by eight years of experience with `goinstall` and `go get`:
-the new concept of a [Go module](https://research.swtch.com/vgo-module), which is a collection of packages versioned as a unit;
-[verifiable and verified builds](https://research.swtch.com/vgo-repro);
-and [version-awareness throughout the `go` command](https://research.swtch.com/vgo-cmd), enabling work outside `$GOPATH` and the elimination of (most) `vendor` directories.
-
 インポート互換性やセマンティックインポートバージョニング、minimal version selection のアイデアのコアに加え、`vgo` のプロトタイプには　`goinstall` や `go get` との8年間の体験によって動機づけられた小さいながらも重要な数々の変更を導入しました。例えば、パッケージのコレクションを一つの単位とする [Go モジュール](https://research.swtch.com/vgo-module) という新しい概念、[検証可能ビルド・検証済みビルド](https://research.swtch.com/vgo-repro)、`$GOPATH` 外での動作や（ほとんどの）`vendor` ディレクトリの削除を可能とする [`go` コマンドを通したバージョンの認知](https://research.swtch.com/vgo-cmd) です。
 
 この全ての成果は先週私が [公式の Go proposal](https://golang.org/design/24301-versioned-go) として提出しました。完璧に実装されているように見えるかもしれませんが、まだプロトタイプの段階で、私たちと一緒にこれから完璧に仕上げていく必要があります。あなたは [golang.org/x/vgo](https://golang.org/x/vgo) から `vgo` のプロトタイプをダウンロードして試すことができます。また、`vgo` に慣れるために [Tour of Versioned Go](https://research.swtch.com/vgo-tour) を読むことができます。
