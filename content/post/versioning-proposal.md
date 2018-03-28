@@ -1,11 +1,11 @@
 +++
 date = "2018-03-26T12:39:53+09:00"
-title = "Go におけるパッケージバージョニングについての提案"
+title = "Go におけるパッケージバージョニングに関するプロポーザル"
 draft = false
 tags = ["tools", "versioning"]
 +++
 
-# Go におけるパッケージバージョニングについての提案
+# Go におけるパッケージバージョニングに関するプロポーザル
 [A Proposal for Package Versioning in Go](https://blog.golang.org/versioning-proposal) by Russ Cox
 
 ## はじめに
@@ -25,42 +25,45 @@ Rust の Cargo におけるタグ付きのセマンティックバージョニ�
 
 一年前、インポートパス内にバージョン数を含むかどうかは主に趣味の問題だと私は強く考えており、それを含むことが特にエレガントだったかは懐疑的でした。しかしその決定は論理的には趣味の問題ではないと分かりました。つまり、インポートの互換性とセマンティックバージョニングは共にセマンティックインポートバージョニングを必要としているのです。私はこれに気づいたとき、論理的な必要性に驚きました。
 
-[段階的なコードの修正](https://talks.golang.org/2016/refactor.article) や部分的なコードのアップグレードなどセマンティックインポートバージョニングとは独立した第2の論理的な考え方があることに気づき私はまた驚きました。巨大なプログラムおいて、特定の依存関係がある v1 から v2 に同時にアップデートすることを、プログラム内の全てのパッケージに期待するのは非現実的です。その代わりにプログラムの一部については v2 にアップグレードでき、その他の部分は v1 を使い続けることができるでしょう。しかしその一方で、ビルドされたバイナリは v1 と v2 の両方の依存関係を含んでいるでしょう。それらに同じインポートパスを与えると混乱につながり、私たちが _インポート一意性に関するルール（inport uniqueness rule）_ と呼んでいるもの、つまり異なるパッケージは異なるインポートパスを持っていなければならないというルールに違反します。部分的なコードのアップグレード、インポート一意性、_そして_ セマンティックバージョニングを行う唯一の方法はセマンティックインポートバージョニングなどを採用することです。
+[段階的なコードの修正](https://talks.golang.org/2016/refactor.article) や部分的なコードのアップグレードなどセマンティックインポートバージョニングとは独立した第2の論理的な考え方があることに気づき私はまた驚きました。大規模なプログラムおいて、特定の依存関係がある v1 から v2 に同時にアップデートすることを、プログラム内の全てのパッケージに期待するのは非現実的です。その代わりにプログラムの一部については v2 にアップグレードでき、その他の部分は v1 を使い続けることができるでしょう。しかしその一方で、ビルドされたバイナリは v1 と v2 の両方の依存関係を含んでいるでしょう。それらに同じインポートパスを与えると混乱につながり、私たちが _インポート一意性に関するルール（inport uniqueness rule）_ と呼んでいるもの、つまり異なるパッケージは異なるインポートパスを持っていなければならないというルールに違反します。部分的なコードのアップグレード、インポート一意性、_そして_ セマンティックバージョニングを行う唯一の方法はセマンティックインポートバージョニングなどを採用することです。
 
-セマンティックインポートバージョニングなしでセマンティックバージョニングを用いるシステムをビルドすることはもちろん可能ですが、部分的なコードのアップグレードかインポート一意性のどちらかを諦めなければなりません。Cargo はインポート一意性を諦めることにより部分的なコードのアップグレードを可能としています。したがって、所定のインポートパスは大規模なビルドの異なる部分で異なる意味合いを持つことができます。Dep は部分的なコードのアップグレードを諦めることでインポート一意性を保証しています。したがって、大規模なビルドに関する全てのパッケージは所定の依存関係によって定められたただ一つのバージョンを探し出さなければならず、巨大なプログラムほどビルドできない可能性が高まります。Cargo は大規模なソフトウェア開発に不可欠な部分的なコードのアップグレードを主張のに適しています。Dep は同様にインポート一意性を主張するのに適しています。Go の現在のベンダリングサポートは使うのは煩雑で、インポート一意性に違反する可能性があります。違反した結果生じた問題は開発者とツールの両方にとってとても理解しにくいものでした。部分的なコードのアップグレードとインポート一意性のどちらかを選択する際は、選択しなかったことによる影響を予測する必要があります。セマンティックインポートバージョニングにより選択を避け、代わりに両方を維持することができます。
+セマンティックインポートバージョニングなしでセマンティックバージョニングを用いるシステムをビルドすることはもちろん可能ですが、部分的なコードのアップグレードかインポート一意性のどちらかを諦めなければなりません。Cargo はインポート一意性を諦めることにより部分的なコードのアップグレードを可能としています。したがって、所定のインポートパスは大規模なビルドの異なる部分で異なる意味合いを持つことができます。Dep は部分的なコードのアップグレードを諦めることでインポート一意性を保証しています。したがって、大規模なビルドに関する全てのパッケージは所定の依存関係によって定められたただ一つのバージョンを探し出さなければならず、大規模なプログラムほどビルドできない可能性が高まります。Cargo は大規模なソフトウェア開発に不可欠な部分的なコードのアップグレードを主張のに適しています。Dep は同様にインポート一意性を主張するのに適しています。Go の現在のベンダリングサポートは使うのは煩雑で、インポート一意性に違反する可能性があります。違反した結果生じた問題は開発者とツールの両方にとってとても理解しにくいものでした。部分的なコードのアップグレードとインポート一意性のどちらかを選択する際は、選択しなかったことによる影響を予測する必要があります。セマンティックインポートバージョニングにより選択を避け、代わりに両方を維持することができます。
 
 どのようなインポート互換性がバージョン選択を簡素化するかを発見したときも驚きました。これは、所定のビルドで用いるパッケージのバージョンを決める際の問題です。Cargo と Dep の制約により、バージョンを選択することと [ブール充足可能性を解決すること](https://research.swtch.com/version-sat) は同等に扱うことができ、それは有効なバージョン設定が存在するかどうかを判断するには高くつくかもしれないということ示唆しています。さらに、❝ベスト❞な設定を選択するための明確な基準なしでは、有効な設定がたくさんあるかもしれません。
 代わりにインポート互換性に頼ることで Go は自明な線形時間のアルゴリズムを使用して、常に存在する唯一のベストな設定を探し出すことができます。
-私が [_minimal version selection_](https://research.swtch.com/vgo-mvs) と呼んでいるこのアルゴリズムは、別々のロックファイルとマニフェストファイルの不必要とします。それらは
-開発者とツールの両方が直接編集した単一の小さな設定ファイルで置き換えられ、再現可能なビルドは引き続きサポートされます。
+私が [_minimal version selection_](https://research.swtch.com/vgo-mvs) と呼んでいるこのアルゴリズムは、別々のロックファイルとマニフェストファイルの必要性をなくします。それらは開発者とツールの両方が直接編集した単一の小さな設定ファイルで置き換えられ、再現可能なビルドは引き続きサポートされます。
 
 Dep を使用した経験は互換性への影響を明らかにしています。Cargo とそれ以前のシステムに基づき、セマンティックバージョニングを採用する一環としてインポート互換性を諦めるために、私たちは Dep を設計しました。私はこれを故意に決めたとは考えていません。私たちはそれらとは別のシステムに従っただけです。Dep を直接使用した経験は、互換性のないインポートパスを許可することによってどのくらいの複雑さが生じるか正確に理解するのに役立ちました。セマンティックインポートバージョニングを導入することによってインポート互換性のルールを復活させることで、その複雑さを取り除き、よりシンプルなシステムにします。
 
-## 進捗、プロトタイプ、提案
+## 進捗、プロトタイプ、プロポーザル
 
-Dep was released in January 2017. Its basic model—code tagged with semantic versions, along with a configuration file that specified dependency requirements—was a clear step forward from most of the Go vendoring tools, and converging on Dep itself was also a clear step forward. I wholeheartedly encouraged its adoption, especially to help developers get used to thinking about Go package versions, both for their own code and their dependencies. While Dep was clearly moving us in the right direction, I had lingering concerns about the complexity devil in the details. I was particularly concerned about Dep lacking support for gradual code upgrades in large programs. Over the course of 2017, I talked to many people, including Sam Boyer and the rest of the package management working group, but none of us could see any clear way to reduce the complexity. (I did find many approaches that added to it.) Approaching the end of the year, it still seemed like SAT solvers and unsatisfiable builds might be the best we could do.
+Dep は2017年1月にリリースされました。そのベーシックモデル、つまり依存関係の要求を明示した設定ファイルに沿うタグ付けされたコードはほとんどの Go のバージョニングツールからの明確な一歩で、Dep 自身に集中することもまた明確な一歩でした。特にコード自体と依存関係の両方に関する Go のパッケージバージョニングについて考えるのに Go 開発者が慣れるのを助けるために、私は全面的にその採用を称えました。Dep が私たちを明らかに正しい方向へ導く中、私は細部に潜む複雑性の悪魔についてずっと心配していました。私は Dep が大規模なプログラム内で段階的にコードをアップグレードするためのサポートが不足していることについて特に心配していました。2017年は Sam Boyer やその他のパッケージ管理ワーキンググループを含む多くの人と話しましたが、誰一人として複雑性を減らす明確な方法が分かる人はいませんでした。（私はそれに加え多くのアプローチを見つけました。）年末に近づいてもそれは依然として SAT ソルバーのように見え、不十分なビルドが私たちができるベストなのかもしれません。
 
-In mid-November, trying once again to work through how Dep could support gradual code upgrades, I realized that our old advice about import compatibility implied semantic import versioning. That seemed like a real breakthrough. I wrote a first draft of what became my [semantic import versioning](https://research.swtch.com/vgo-import) blog post, concluding it by suggesting that Dep adopt the convention. I sent the draft to the people I’d been talking to, and it elicited very strong responses: everyone loved it or hated it. I realized that I needed to work out more of the implications of semantic import versioning before circulating the idea further, and I set out to do that.
+11月中旬、Dep がどのようにして段階的なコードのアップグレードをサポートできるかもう一度考えていたとき、私はインポート互換性についての私たちの言い伝えがセマンティックインポートバージョニングを暗示していることに気づきました。大きな進歩のような気がしました。私はブログ記事 [semantic import versioning](https://research.swtch.com/vgo-import) に初稿を書き、Dep は慣習を採用することを提案するという結論に至りました。私は以前お話した人達にその草稿を送り、とても大きな反響を呼びました。賛否両論でした。私はアイデアをさらに広める前にセマンティックインポートバージョニングの意味をより深く理解する必要があることを認識し、行動に移しました。
 
-In mid-December, I discovered that import compatibility and semantic import versioning together allowed cutting version selection down to [minimal version selection](https://research.swtch.com/vgo-mvs). I wrote a basic implementation to be sure I understood it, I spent a while learning the theory behind why it was so simple, and I wrote a draft of the post describing it. Even so, I still wasn’t sure the approach would be practical in a real tool like Dep. It was clear that a prototype was needed.
+12月中旬、私はインポート互換性とセマンティックインポートバージョニングを組み合わせることでバージョン選択を [minimal version selection](https://research.swtch.com/vgo-mvs) へと落とし込めることに気づきました。私はそれを理解したか確かめるために基礎的な実装を書き、それがとてもシンプルであった理由の背後に隠された理論を学び、そしてそれを説明する記事の草稿を書きました。それでも、Dep のような実際のツールではそのアプローチが実用的かまだ分かりませんでした。プロトタイプが必要であることは明らかでした。
 
-In January, I started work on a simple `go` command wrapper that implemented semantic import versioning and minimal version selection. Trivial tests worked well. Approaching the end of the month, my simple wrapper could build Dep, a real program that made use of many versioned packages. The wrapper still had no command-line interface—the fact that it was building Dep was hard-coded in a few string constants—but the approach was clearly viable.
+1月に入り、私はセマンティックインポートバージョニングと minimal version selection を実装したシンプルな `go` コマンドのラッパーを作り始めました。簡単なテストはうまくいきました。月末に近づき、私のシンプルなラッパーは、多くのバージョニングされたパッケージを用いた実際のプログラムである Dep をビルドすることができました。ラッパーはまだコマンドラインインターフェースを持っておらず、いくつかの文字定数でハードコードされた状態で Dep をビルドしていましたが、そのアプローチは明らかに有効でした。
 
-I spent the first three weeks of February turning the wrapper into a full versioned `go` command, `vgo`; writing drafts of a [blog post series introducing `vgo`](https://research.swtch.com/vgo); and discussing them with Sam Boyer, the package management working group, and the Go team. And then I spent the last week of February finally sharing `vgo` and the ideas behind it with the whole Go community.
+私は2月の最初の3週間を利用してラッパーを完全なバージョンの `go` コマンド `vgo` に書き直したり、[`vgo` について紹介するブログ記事一覧](https://research.swtch.com/vgo) の草稿を書いたり、Sam Boyer やパッケージ管理ワークグループ、Go チームと議論したりしました。そして2月の最後の週は
+Go コミュニティ全体に対して `vgo` やその背後に隠されたアイデアを共有しました。
 
-In addition to the core ideas of import compatibility, semantic import versioning, and minimal version selection, the `vgo` prototype introduces a number of smaller
-but significant changes motivated by eight years of experience with `goinstall` and `go get`: the new concept of a [Go module](https://research.swtch.com/vgo-module), which is a collection of packages versioned as a unit; [verifiable and verified builds](https://research.swtch.com/vgo-repro); and [version-awareness throughout the `go` command](https://research.swtch.com/vgo-cmd), enabling work outside `$GOPATH` and the elimination of (most) `vendor` directories.
+In addition to the core ideas of import compatibility, semantic import versioning, and minimal version selection, the `vgo` prototype introduces a number of smaller but significant changes motivated by eight years of experience with `goinstall` and `go get`:
+the new concept of a [Go module](https://research.swtch.com/vgo-module), which is a collection of packages versioned as a unit;
+[verifiable and verified builds](https://research.swtch.com/vgo-repro);
+and [version-awareness throughout the `go` command](https://research.swtch.com/vgo-cmd), enabling work outside `$GOPATH` and the elimination of (most) `vendor` directories.
 
-The result of all of this is the [official Go proposal](https://golang.org/design/24301-versioned-go), which I filed last week.
-Even though it might look like a complete implementation, it’s still just a prototype, one that we will all need to work together to complete. You can download and try the `vgo` prototype from [golang.org/x/vgo](https://golang.org/x/vgo), and you can read the [Tour of Versioned Go](https://research.swtch.com/vgo-tour) to get a sense of what using `vgo` is like.
+インポート互換性やセマンティックインポートバージョニング、minimal version selection のアイデアのコアに加え、`vgo` のプロトタイプには　`goinstall` や `go get` との8年間の体験によって動機づけられた小さいながらも重要な数々の変更を導入しました。例えば、パッケージのコレクションを一つの単位とする [Go モジュール](https://research.swtch.com/vgo-module) という新しい概念、[検証可能ビルド・検証済みビルド](https://research.swtch.com/vgo-repro)、`$GOPATH` 外での動作や（ほとんどの）`vendor` ディレクトリの削除を可能とする [`go` コマンドを通したバージョンの認知](https://research.swtch.com/vgo-cmd) です。
+
+この全ての成果は先週私が [公式の Go proposal](https://golang.org/design/24301-versioned-go) として提出しました。完璧に実装されているように見えるかもしれませんが、まだプロトタイプの段階で、私たちと一緒にこれから完璧に仕上げていく必要があります。あなたは [golang.org/x/vgo](https://golang.org/x/vgo) から `vgo` のプロトタイプをダウンロードして試すことができます。また、`vgo` に慣れるために [Tour of Versioned Go](https://research.swtch.com/vgo-tour) を読むことができます。
 
 ## 今後の方針
 
-The proposal I filed last week is exactly that: an initial proposal. I know there are problems with it that the Go team and I can’t see, because Go developers use Go in many clever ways that we don’t know about. The goal of the proposal feedback process is for us all to work together to identify and address the problems in the current proposal, to make sure that the final implementation that ships in a future Go release works well for as many developers as possible. Please point out problems on the [proposal discussion issue](https://golang.org/issue/24301). I will keep the [discussion summary](https://golang.org/issue/24301#issuecomment-371228742) and [FAQ](https://golang.org/issue/24301#issuecomment-371228664) updated as feedback arrives.
+私が先週提出したプロポーザルはまさに最初のプロポーザルです。Go 開発者は私たちが知らないとても賢い方法で Go を使うので、Go チームや私が見つけられない問題があることを私は知っています。プロポーザルのフィードバックプロセスの目標は、現在のプロポーザルの問題を特定して対処するため、また将来リリースされる Go の最終的な実装ができるだけ多くの開発者にとってうまくいくようにするためにに私たち全員が協力することです。[プロポーザルに関する議論の issue](https://golang.org/issue/24301) で問題点を指摘してください。私はいただいたフィードバックにより [議論の概要](https://golang.org/issue/24301#issuecomment-371228742) や [FAQ](https://golang.org/issue/24301#issuecomment-371228664) を更新し続ける予定です。
 
-For this proposal to succeed, the Go ecosystem as a whole—and in particular today’s major Go projects—will need to adopt the import compatibility rule and semantic import versioning. To make sure that can happen smoothly, we will also be conducting user feedback sessions by video conference with projects that have questions about how to incorporate the new versioning proposal into their code bases or have feedback about their experiences. If you are interested in participating in such a session, please email Steve Francia at spf@golang.org.
+このプロポーザルが成功するためには、Go のエコシステム、特に今日のメジャーな Go プロジェクト全体がインポート互換性のルールやセマンティックインポートバージョニングを採用する必要があるでしょう。それがスムーズに行われるように、新しいバージョニングのプロポーザルをコードベースに組み込む方法や、体験のフィードバックを得る方法について質問があるプロジェクトと共にビデオ会議でユーザーフィードバックセッションを行う予定です。そのようなセッションに参加したい場合は、Steve Francia（spf@golang.org）までメールを下さい。
 
-We’re looking forward to (finally!) providing the Go community with a single, official answer to the question of how to incorporate package versioning into `go get`. Thanks to everyone who helped us get this far, and to everyone who will help us going forward. We hope that, with your help, we can ship something that Go developers will love.
+私たちは（最後に！）Go コミュニティに対し、パッケージのバージョニングを `go get` に組み込む方法に関する質問に対し公式の回答を一つだけ提供することを楽しみにしています。これまで私たちを助けてくださったみなさま、そしてこれから私たちを助けてくださるみなさまに感謝申し上げます。私たちはあなたたちの助けを借りて、Go の開発者が気に入るものをリリースできることを願っています。
 
 By Russ Cox
 
